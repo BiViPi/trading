@@ -1,0 +1,151 @@
+/* ═══════════════════════════════════════════════════════════════
+   Trading Sim Dashboard — English Translation Tokens
+   ═══════════════════════════════════════════════════════════════ */
+
+window.TRANSLATIONS_EN = {
+  // Nav
+  nav_title: "Trading Sim",
+  offline: "OFFLINE",
+  scanning: "SCANNING",
+  in_trade: "IN TRADE",
+  start_session: "Start Session",
+  run_agent: "Run Agent",
+  close_session: "Close Session",
+  idle: "Idle",
+  active: "Active",
+
+  // KPI Cards
+  equity: "EQUITY",
+  starting_balance: "Starting balance",
+  net_profit: "net profit",
+  net_loss: "net loss",
+  initial: "INITIAL",
+  profit_badge: "PROFIT",
+  loss_badge: "LOSS",
+
+  win_rate: "WIN RATE",
+  no_trades_yet: "No closed trades yet",
+  closed_trade: "Closed Trade",
+  closed_trades: "Closed Trades",
+  wins_lbl: "Wins",
+  losses_lbl: "Losses",
+  be_lbl: "BE",
+
+  total_r: "TOTAL R",
+  avg_r_trade: "Avg: {r} / trade",
+  total_r_badge: "{r} total",
+
+  max_drawdown: "MAX DRAWDOWN",
+  no_dd_recorded: "No drawdown recorded",
+  peak_dd_recorded: "Peak drawdown recorded",
+  adherence: "Adherence",
+
+  // Performance Curve
+  perf_curve: "PERFORMANCE CURVE",
+  perf_chart_title: "Performance Chart",
+  no_equity_data: "No equity data yet",
+  perf_empty_desc: "Start a session or add your first trade to generate the equity curve.",
+  add_trade: "Add Trade",
+
+  // Live Monitor
+  live_monitor: "LIVE MONITOR",
+  live_session: "Live Session",
+  no_active_session: "No active session",
+  live_empty_desc: "Start a paper session to let the agent scan setups and track trade levels.",
+  strategy: "Strategy",
+  status: "Status",
+  direction: "Direction",
+  scanning_opportunities: "SCANNING OPPORTUNITIES",
+  in_position: "IN POSITION",
+  scanning_setups: "Scanning setups...",
+  market_context_lbl: "Market Context",
+  setup_quality_lbl: "Setup Quality",
+  risk_notes_lbl: "Risk Notes",
+
+  // Journal Log
+  journal_log: "JOURNAL LOG",
+  trade_journal: "Trade Journal",
+  search_placeholder: "Search symbol, strategy...",
+  all: "All",
+  wins_filter: "Wins",
+  losses_filter: "Losses",
+  be_filter: "BE",
+  no_trade_filter: "No-Trade",
+  sort_newest: "Newest",
+  sort_oldest: "Oldest",
+  sort_highest_pnl: "Highest PnL",
+  sort_lowest_pnl: "Lowest PnL",
+  sort_highest_r: "Highest R",
+  table_date: "Date",
+  table_symbol: "Symbol",
+  table_dir: "Dir",
+  table_strategy: "Strategy",
+  table_entry: "Entry",
+  table_sl: "SL",
+  table_tp: "TP",
+  table_rr: "R:R",
+  table_result: "Result",
+  table_pnl: "PnL",
+  table_r: "R",
+  no_trades_logged_yet: "No trades logged yet",
+  journal_empty_desc: "Completed sessions and manual trades will appear here.",
+
+  // Metrics
+  metrics: "METRICS",
+  strat_discipline: "Strategies & Discipline",
+  strat_perf_title: "Strategy Performance",
+  no_strat_metrics: "No strategy metrics recorded yet.",
+  discipline_risk_title: "Discipline & Risk Metrics",
+  risk_rule_active: "Risk Rule: Active",
+  sessions_completed: "Sessions Completed",
+  trades_notrades: "Total Trades / No-Trades",
+  discipline_adherence: "Discipline Adherence",
+  avg_r_per_trade: "Average R per Trade",
+  max_drawdown_stat: "Max Drawdown",
+
+  // Reviews
+  reviews: "REVIEWS",
+  daily_reviews: "Daily Reviews",
+  new_review: "+ Start Review",
+  no_reviews_title: "No reviews yet",
+  reviews_empty_desc: "Complete a session to generate your first daily review. Agent will checklist:",
+  chk_followed_plan: "Followed plan?",
+  chk_managed_risk: "Managed risk? (Max 1% capital per trade)",
+  chk_lessons_learned: "Lessons learned and patterns noted?",
+  trade_permitted: "TRADE PERMITTED",
+  review_shutdown: "REVIEW & SHUTDOWN",
+  start_review_btn: "Start Review",
+
+  // Learnings / Patterns
+  learnings: "LEARNINGS",
+  pattern_library: "Pattern Library",
+  add_pattern: "+ Add Pattern",
+  no_patterns_title: "No patterns saved yet",
+  patterns_empty_desc: "Patterns will be created from repeated setups and weekly reviews.",
+  ghost_observed: "Ghost pattern",
+  observed_lbl: "Observed",
+  win_rate_lbl: "Win Rate",
+  add_pattern_btn: "Add Pattern",
+  ghost_breakout_title: "Breakout Model",
+  ghost_breakout_desc: "Horizontal range breakout accompanied by elevated confirmation volume...",
+  ghost_pullback_title: "Pullback Retest",
+  ghost_pullback_desc: "Entry at key prior resistance flipped support level after breakout...",
+  ghost_observed_meta: "Ghost pattern · 0 trades",
+
+  // Footer
+  footer_name: "Trading Simulation Dashboard",
+  footer_mode: "SIMULATED PAPER TRADING ONLY",
+  last_sync: "Last sync",
+  capital: "Capital",
+  not_advice: "Not financial advice",
+
+  // Modal
+  modal_title: "Log Simulated Trade",
+  cancel: "Cancel",
+  add_trade_btn: "Add Trade",
+  entry_price: "Entry Price",
+  stop_loss: "Stop Loss",
+  take_profit: "Take Profit",
+  pnl_usd: "PnL (USD)",
+  r_result: "R-Result"
+};

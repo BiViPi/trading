@@ -7,6 +7,8 @@
 (function () {
   'use strict';
 
+  const $ = id => document.getElementById(id);
+
   // ── Retrieve/Initialize Global State ──────────────────────────
   let D = window.TRADING_DATA;
   if (!D) {
@@ -43,300 +45,8 @@
 
   // ── i18n Translation Dictionary ────────────────────────────────
   const TRANSLATIONS = {
-    en: {
-      // Nav
-      nav_title: "Trading Sim",
-      offline: "OFFLINE",
-      scanning: "SCANNING",
-      in_trade: "IN TRADE",
-      start_session: "Start Session",
-      run_agent: "Run Agent",
-      close_session: "Close Session",
-      idle: "Idle",
-      active: "Active",
-
-      // KPI Cards
-      equity: "EQUITY",
-      starting_balance: "Starting balance",
-      net_profit: "net profit",
-      net_loss: "net loss",
-      initial: "INITIAL",
-      profit_badge: "PROFIT",
-      loss_badge: "LOSS",
-
-      win_rate: "WIN RATE",
-      no_trades_yet: "No closed trades yet",
-      closed_trade: "Closed Trade",
-      closed_trades: "Closed Trades",
-      wins_lbl: "Wins",
-      losses_lbl: "Losses",
-      be_lbl: "BE",
-
-      total_r: "TOTAL R",
-      avg_r_trade: "Avg: {r} / trade",
-      total_r_badge: "{r} total",
-
-      max_drawdown: "MAX DRAWDOWN",
-      no_dd_recorded: "No drawdown recorded",
-      peak_dd_recorded: "Peak drawdown recorded",
-      adherence: "Adherence",
-
-      // Performance Curve
-      perf_curve: "PERFORMANCE CURVE",
-      perf_chart_title: "Performance Chart",
-      no_equity_data: "No equity data yet",
-      perf_empty_desc: "Start a session or add your first trade to generate the equity curve.",
-      add_trade: "Add Trade",
-
-      // Live Monitor
-      live_monitor: "LIVE MONITOR",
-      live_session: "Live Session",
-      no_active_session: "No active session",
-      live_empty_desc: "Start a paper session to let the agent scan setups and track trade levels.",
-      strategy: "Strategy",
-      status: "Status",
-      direction: "Direction",
-      scanning_opportunities: "SCANNING OPPORTUNITIES",
-      in_position: "IN POSITION",
-      scanning_setups: "Scanning setups...",
-      market_context_lbl: "Market Context",
-      setup_quality_lbl: "Setup Quality",
-      risk_notes_lbl: "Risk Notes",
-
-      // Journal Log
-      journal_log: "JOURNAL LOG",
-      trade_journal: "Trade Journal",
-      search_placeholder: "Search symbol, strategy...",
-      all: "All",
-      wins_filter: "Wins",
-      losses_filter: "Losses",
-      be_filter: "BE",
-      no_trade_filter: "No-Trade",
-      sort_newest: "Newest",
-      sort_oldest: "Oldest",
-      sort_highest_pnl: "Highest PnL",
-      sort_lowest_pnl: "Lowest PnL",
-      sort_highest_r: "Highest R",
-      table_date: "Date",
-      table_symbol: "Symbol",
-      table_dir: "Dir",
-      table_strategy: "Strategy",
-      table_entry: "Entry",
-      table_sl: "SL",
-      table_tp: "TP",
-      table_rr: "R:R",
-      table_result: "Result",
-      table_pnl: "PnL",
-      table_r: "R",
-      no_trades_logged_yet: "No trades logged yet",
-      journal_empty_desc: "Completed sessions and manual trades will appear here.",
-
-      // Metrics
-      metrics: "METRICS",
-      strat_discipline: "Strategies & Discipline",
-      strat_perf_title: "Strategy Performance",
-      no_strat_metrics: "No strategy metrics recorded yet.",
-      discipline_risk_title: "Discipline & Risk Metrics",
-      risk_rule_active: "Risk Rule: Active",
-      sessions_completed: "Sessions Completed",
-      trades_notrades: "Total Trades / No-Trades",
-      discipline_adherence: "Discipline Adherence",
-      avg_r_per_trade: "Average R per Trade",
-      max_drawdown_stat: "Max Drawdown",
-
-      // Reviews
-      reviews: "REVIEWS",
-      daily_reviews: "Daily Reviews",
-      new_review: "+ Start Review",
-      no_reviews_title: "No reviews yet",
-      reviews_empty_desc: "Complete a session to generate your first daily review. Agent will checklist:",
-      chk_followed_plan: "Followed plan?",
-      chk_managed_risk: "Managed risk? (Max 1% capital per trade)",
-      chk_lessons_learned: "Lessons learned and patterns noted?",
-      trade_permitted: "TRADE PERMITTED",
-      review_shutdown: "REVIEW & SHUTDOWN",
-      start_review_btn: "Start Review",
-
-      // Learnings / Patterns
-      learnings: "LEARNINGS",
-      pattern_library: "Pattern Library",
-      add_pattern: "+ Add Pattern",
-      no_patterns_title: "No patterns saved yet",
-      patterns_empty_desc: "Patterns will be created from repeated setups and weekly reviews.",
-      ghost_observed: "Ghost pattern",
-      observed_lbl: "Observed",
-      win_rate_lbl: "Win Rate",
-      add_pattern_btn: "Add Pattern",
-      ghost_breakout_title: "Breakout Model",
-      ghost_breakout_desc: "Horizontal range breakout accompanied by elevated confirmation volume...",
-      ghost_pullback_title: "Pullback Retest",
-      ghost_pullback_desc: "Entry at key prior resistance flipped support level after breakout...",
-      ghost_observed_meta: "Ghost pattern · 0 trades",
-
-      // Footer
-      footer_name: "Trading Simulation Dashboard",
-      footer_mode: "SIMULATED PAPER TRADING ONLY",
-      last_sync: "Last sync",
-      capital: "Capital",
-      not_advice: "Not financial advice",
-
-      // Modal
-      modal_title: "Log Simulated Trade",
-      cancel: "Cancel",
-      add_trade_btn: "Add Trade",
-      entry_price: "Entry Price",
-      stop_loss: "Stop Loss",
-      take_profit: "Take Profit",
-      pnl_usd: "PnL (USD)",
-      r_result: "R-Result"
-    },
-    vi: {
-      // Nav
-      nav_title: "Mô phỏng giao dịch",
-      offline: "NGOẠI TUYẾN",
-      scanning: "ĐANG QUÉT",
-      in_trade: "ĐANG GIAO DỊCH",
-      start_session: "Bắt đầu phiên",
-      run_agent: "Chạy Agent",
-      close_session: "Đóng phiên",
-      idle: "Ngoại tuyến",
-      active: "Hoạt động",
-
-      // KPI Cards
-      equity: "VỐN TÀI KHOẢN",
-      starting_balance: "Số dư ban đầu",
-      net_profit: "lợi nhuận ròng",
-      net_loss: "thua lỗ ròng",
-      initial: "BAN ĐẦU",
-      profit_badge: "LỢI NHUẬN",
-      loss_badge: "THUA LỖ",
-
-      win_rate: "TỶ LỆ THẮNG",
-      no_trades_yet: "Chưa có giao dịch",
-      closed_trade: "Lệnh đóng",
-      closed_trades: "Lệnh đóng",
-      wins_lbl: "Thắng",
-      losses_lbl: "Thua",
-      be_lbl: "Hòa",
-
-      total_r: "TỔNG R",
-      avg_r_trade: "Tb: {r} / lệnh",
-      total_r_badge: "Tổng {r}",
-
-      max_drawdown: "DRAWDOWN TỐI ĐA",
-      no_dd_recorded: "Chưa có sụt giảm",
-      peak_dd_recorded: "Mức sụt giảm tối đa",
-      adherence: "Tuân thủ",
-
-      // Performance Curve
-      perf_curve: "ĐƯỜNG HIỆU SUẤT",
-      perf_chart_title: "Biểu đồ hiệu suất",
-      no_equity_data: "Chưa có dữ liệu hiệu suất",
-      perf_empty_desc: "Bắt đầu phiên hoặc thêm giao dịch đầu tiên để tạo đường hiệu suất.",
-      add_trade: "Thêm giao dịch",
-
-      // Live Monitor
-      live_monitor: "THEO DÕI PHIÊN",
-      live_session: "Phiên giao dịch",
-      no_active_session: "Chưa có phiên đang chạy",
-      live_empty_desc: "Khởi chạy một phiên paper trading để agent quét setup và theo dõi các mức giá.",
-      strategy: "Chiến lược",
-      status: "Trạng thái",
-      direction: "Xu hướng",
-      scanning_opportunities: "ĐANG TÌM KIẾM CƠ HỘI",
-      in_position: "ĐANG CÓ VỊ THẾ",
-      scanning_setups: "Đang quét các thiết lập...",
-      market_context_lbl: "Bối cảnh thị trường",
-      setup_quality_lbl: "Chất lượng thiết lập",
-      risk_notes_lbl: "Lưu ý rủi ro",
-
-      // Journal Log
-      journal_log: "NHẬT KÝ GIAO DỊCH",
-      trade_journal: "Nhật ký giao dịch",
-      search_placeholder: "Tìm symbol, chiến lược...",
-      all: "Tất cả",
-      wins_filter: "Thắng",
-      losses_filter: "Thua",
-      be_filter: "Hòa",
-      no_trade_filter: "Kỷ luật",
-      sort_newest: "Mới nhất",
-      sort_oldest: "Cũ nhất",
-      sort_highest_pnl: "PnL cao nhất",
-      sort_lowest_pnl: "PnL thấp nhất",
-      sort_highest_r: "R cao nhất",
-      table_date: "Ngày",
-      table_symbol: "Symbol",
-      table_dir: "Dir",
-      table_strategy: "Chiến lược",
-      table_entry: "Entry",
-      table_sl: "SL",
-      table_tp: "TP",
-      table_rr: "R:R",
-      table_result: "Kết quả",
-      table_pnl: "PnL",
-      table_r: "R",
-      no_trades_logged_yet: "Chưa có giao dịch nào",
-      journal_empty_desc: "Các phiên đã đóng và giao dịch thủ công sẽ xuất hiện tại đây.",
-
-      // Metrics
-      metrics: "CHỈ SỐ",
-      strat_discipline: "Chiến lược & Kỷ luật",
-      strat_perf_title: "Hiệu suất chiến lược",
-      no_strat_metrics: "Chưa có dữ liệu hiệu suất chiến lược.",
-      discipline_risk_title: "Chỉ số kỷ luật & rủi ro",
-      risk_rule_active: "Luật rủi ro: Kích hoạt",
-      sessions_completed: "Số phiên hoàn thành",
-      trades_notrades: "Tổng số Lệnh / Kỷ luật",
-      discipline_adherence: "Tuân thủ kỷ luật",
-      avg_r_per_trade: "R trung bình mỗi lệnh",
-      max_drawdown_stat: "Sụt giảm tối đa",
-
-      // Reviews
-      reviews: "ĐÁNH GIÁ",
-      daily_reviews: "Đánh giá hằng ngày",
-      new_review: "+ Viết đánh giá",
-      no_reviews_title: "Chưa có đánh giá nào",
-      reviews_empty_desc: "Hoàn thành một phiên giao dịch để tạo đánh giá hằng ngày đầu tiên. Agent sẽ kiểm tra:",
-      chk_followed_plan: "Có tuân thủ kế hoạch không?",
-      chk_managed_risk: "Có quản lý rủi ro không? (Tối đa 1% vốn mỗi lệnh)",
-      chk_lessons_learned: "Có ghi nhận bài học và mô hình lặp lại không?",
-      trade_permitted: "CHO PHÉP GIAO DỊCH",
-      review_shutdown: "KIỂM TRA & ĐÓNG PHIÊN",
-      start_review_btn: "Bắt đầu đánh giá",
-
-      // Learnings / Patterns
-      learnings: "HỌC TẬP",
-      pattern_library: "Thư viện mô hình",
-      add_pattern: "+ Thêm mô hình",
-      no_patterns_title: "Chưa có mô hình nào được lưu",
-      patterns_empty_desc: "Các mô hình sẽ được tạo từ những setup lặp lại và đánh giá hằng tuần.",
-      ghost_observed: "Mẫu tham khảo",
-      observed_lbl: "Đã quan sát",
-      win_rate_lbl: "Tỷ lệ thắng",
-      add_pattern_btn: "Thêm mô hình",
-      ghost_breakout_title: "Mô hình Breakout",
-      ghost_breakout_desc: "Giá phá vỡ tích lũy đi ngang kèm khối lượng giao dịch đột biến xác nhận...",
-      ghost_pullback_title: "Pullback Retest",
-      ghost_pullback_desc: "Vùng kháng cự cũ chuyển vai trò thành hỗ trợ mới sau cú breakout...",
-      ghost_observed_meta: "Mẫu tham khảo · 0 lệnh",
-
-      // Footer
-      footer_name: "Bảng mô phỏng giao dịch",
-      footer_mode: "CHỈ LÀ MÔ PHỎNG GIAO DỊCH PAPER",
-      last_sync: "Đồng bộ lần cuối",
-      capital: "Vốn",
-      not_advice: "Không phải lời khuyên tài chính",
-
-      // Modal
-      modal_title: "Ghi nhận giao dịch giả lập",
-      cancel: "Hủy",
-      add_trade_btn: "Thêm giao dịch",
-      entry_price: "Giá Entry",
-      stop_loss: "Dừng lỗ (SL)",
-      take_profit: "Chốt lời (TP)",
-      pnl_usd: "PnL (USD)",
-      r_result: "Kết quả R"
-    }
+    en: window.TRANSLATIONS_EN,
+    vi: window.TRANSLATIONS_VI
   };
 
   let currentLang = localStorage.getItem('trading_sim_lang') || 'en';
@@ -396,6 +106,38 @@
         el.placeholder = dict[key];
       }
     });
+  }
+
+  // ── Theme State & Logic ───────────────────────────────────────
+  let currentTheme = localStorage.getItem('trading_sim_theme') || 'dark';
+
+  window.toggleTheme = function () {
+    currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('trading_sim_theme', currentTheme);
+    applyTheme();
+  };
+
+  function applyTheme() {
+    const htmlEl = document.documentElement;
+    const sunIcon = document.querySelector('.theme-icon-sun');
+    const moonIcon = document.querySelector('.theme-icon-moon');
+    
+    if (currentTheme === 'light') {
+      htmlEl.classList.remove('dark');
+      htmlEl.classList.add('light');
+      if (sunIcon) sunIcon.classList.add('hidden');
+      if (moonIcon) moonIcon.classList.remove('hidden');
+    } else {
+      htmlEl.classList.remove('light');
+      htmlEl.classList.add('dark');
+      if (sunIcon) sunIcon.classList.remove('hidden');
+      if (moonIcon) moonIcon.classList.add('hidden');
+    }
+    
+    // Rerender chart to match theme grid colors
+    if (typeof mainChartInstance !== 'undefined' && mainChartInstance) {
+      renderPerformanceChart();
+    }
   }
 
   // ── Constants & State variables ───────────────────────────────
@@ -644,11 +386,11 @@
           tension: 0.35,
           pointRadius: 4,
           pointBackgroundColor: strokeColor,
-          pointBorderColor: '#0d1117',
+          pointBorderColor: currentTheme === 'light' ? '#ffffff' : '#0d1117',
           pointBorderWidth: 2,
           pointHoverRadius: 6,
           pointHoverBackgroundColor: strokeColor,
-          pointHoverBorderColor: '#fff',
+          pointHoverBorderColor: currentTheme === 'light' ? '#0f172a' : '#fff',
           pointHoverBorderWidth: 2,
         }]
       },
@@ -661,9 +403,11 @@
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: '#0d1117',
-            borderColor: 'rgba(255, 255, 255, 0.08)',
+            backgroundColor: currentTheme === 'light' ? '#ffffff' : '#0d1117',
+            borderColor: currentTheme === 'light' ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)',
             borderWidth: 1,
+            titleColor: currentTheme === 'light' ? '#0f172a' : '#f0f2f5',
+            bodyColor: currentTheme === 'light' ? '#334155' : '#a3aebb',
             titleFont: { family: 'Geist', size: 11, weight: '700' },
             bodyFont: { family: 'Geist Mono', size: 12 },
             cornerRadius: 6,
@@ -674,13 +418,13 @@
         },
         scales: {
           x: {
-            grid: { color: 'rgba(255, 255, 255, 0.02)', drawTicks: false },
-            ticks: { color: '#8b95a8', font: { family: 'Geist', size: 10 } }
+            grid: { color: currentTheme === 'light' ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.02)', drawTicks: false },
+            ticks: { color: currentTheme === 'light' ? '#64748b' : '#8b95a8', font: { family: 'Geist', size: 10 } }
           },
           y: {
-            grid: { color: 'rgba(255, 255, 255, 0.02)', drawTicks: false },
+            grid: { color: currentTheme === 'light' ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.02)', drawTicks: false },
             ticks: {
-              color: '#8b95a8',
+              color: currentTheme === 'light' ? '#64748b' : '#8b95a8',
               font: { family: 'Geist Mono', size: 10 },
               callback: (v) => {
                 if (activeChartType === 'equity') return `$${v.toLocaleString()}`;
@@ -1572,6 +1316,9 @@
 
   // ── 8. Initial Initialization on Load ─────────────────────────
   function init() {
+    // Initialize active theme
+    applyTheme();
+
     // Sync active button classes based on current lang
     const btnEn = $('lang-btn-en');
     const btnVi = $('lang-btn-vi');

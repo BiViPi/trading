@@ -1,0 +1,151 @@
+/* ═══════════════════════════════════════════════════════════════
+   Trading Sim Dashboard — Vietnamese Translation Tokens
+   ═══════════════════════════════════════════════════════════════ */
+
+window.TRANSLATIONS_VI = {
+  // Nav
+  nav_title: "Mô phỏng giao dịch",
+  offline: "NGOẠI TUYẾN",
+  scanning: "ĐANG QUÉT",
+  in_trade: "ĐANG GIAO DỊCH",
+  start_session: "Bắt đầu phiên",
+  run_agent: "Chạy Agent",
+  close_session: "Đóng phiên",
+  idle: "Ngoại tuyến",
+  active: "Hoạt động",
+
+  // KPI Cards
+  equity: "VỐN TÀI KHOẢN",
+  starting_balance: "Số dư ban đầu",
+  net_profit: "lợi nhuận ròng",
+  net_loss: "thua lỗ ròng",
+  initial: "BAN ĐẦU",
+  profit_badge: "LỢI NHUẬN",
+  loss_badge: "THUA LỖ",
+
+  win_rate: "TỶ LỆ THẮNG",
+  no_trades_yet: "Chưa có giao dịch",
+  closed_trade: "Lệnh đóng",
+  closed_trades: "Lệnh đóng",
+  wins_lbl: "Thắng",
+  losses_lbl: "Thua",
+  be_lbl: "Hòa",
+
+  total_r: "TỔNG R",
+  avg_r_trade: "Tb: {r} / lệnh",
+  total_r_badge: "Tổng {r}",
+
+  max_drawdown: "DRAWDOWN TỐI ĐA",
+  no_dd_recorded: "Chưa có sụt giảm",
+  peak_dd_recorded: "Mức sụt giảm tối đa",
+  adherence: "Tuân thủ",
+
+  // Performance Curve
+  perf_curve: "ĐƯỜNG HIỆU SUẤT",
+  perf_chart_title: "Biểu đồ hiệu suất",
+  no_equity_data: "Chưa có dữ liệu hiệu suất",
+  perf_empty_desc: "Bắt đầu phiên hoặc thêm giao dịch đầu tiên để tạo đường hiệu suất.",
+  add_trade: "Thêm giao dịch",
+
+  // Live Monitor
+  live_monitor: "THEO DÕI PHIÊN",
+  live_session: "Phiên giao dịch",
+  no_active_session: "Chưa có phiên đang chạy",
+  live_empty_desc: "Khởi chạy một phiên paper trading để agent quét setup và theo dõi các mức giá.",
+  strategy: "Chiến lược",
+  status: "Trạng thái",
+  direction: "Xu hướng",
+  scanning_opportunities: "ĐANG TÌM KIẾM CƠ HỘI",
+  in_position: "ĐANG CÓ VỊ THẾ",
+  scanning_setups: "Đang quét các thiết lập...",
+  market_context_lbl: "Bối cảnh thị trường",
+  setup_quality_lbl: "Chất lượng thiết lập",
+  risk_notes_lbl: "Lưu ý rủi ro",
+
+  // Journal Log
+  journal_log: "NHẬT KÝ GIAO DỊCH",
+  trade_journal: "Nhật ký giao dịch",
+  search_placeholder: "Tìm symbol, chiến lược...",
+  all: "Tất cả",
+  wins_filter: "Thắng",
+  losses_filter: "Thua",
+  be_filter: "Hòa",
+  no_trade_filter: "Kỷ luật",
+  sort_newest: "Mới nhất",
+  sort_oldest: "Cũ nhất",
+  sort_highest_pnl: "PnL cao nhất",
+  sort_lowest_pnl: "Lowest PnL",
+  sort_highest_r: "R cao nhất",
+  table_date: "Ngày",
+  table_symbol: "Symbol",
+  table_dir: "Dir",
+  table_strategy: "Chiến lược",
+  table_entry: "Entry",
+  table_sl: "SL",
+  table_tp: "TP",
+  table_rr: "R:R",
+  table_result: "Kết quả",
+  table_pnl: "PnL",
+  table_r: "R",
+  no_trades_logged_yet: "Chưa có giao dịch nào",
+  journal_empty_desc: "Các phiên đã đóng và giao dịch thủ công sẽ xuất hiện tại đây.",
+
+  // Metrics
+  metrics: "CHỈ SỐ",
+  strat_discipline: "Chiến lược & Kỷ luật",
+  strat_perf_title: "Hiệu suất chiến lược",
+  no_strat_metrics: "Chưa có dữ liệu hiệu suất chiến lược.",
+  discipline_risk_title: "Chỉ số kỷ luật & rủi ro",
+  risk_rule_active: "Luật rủi ro: Kích hoạt",
+  sessions_completed: "Số phiên hoàn thành",
+  trades_notrades: "Tổng số Lệnh / Kỷ luật",
+  discipline_adherence: "Tuân thủ kỷ luật",
+  avg_r_per_trade: "R trung bình mỗi lệnh",
+  max_drawdown_stat: "Sụt giảm tối đa",
+
+  // Reviews
+  reviews: "ĐÁNH GIÁ",
+  daily_reviews: "Đánh giá hằng ngày",
+  new_review: "+ Viết đánh giá",
+  no_reviews_title: "Chưa có đánh giá nào",
+  reviews_empty_desc: "Hoàn thành một phiên giao dịch để tạo đánh giá hằng ngày đầu tiên. Agent sẽ kiểm tra:",
+  chk_followed_plan: "Có tuân thủ kế hoạch không?",
+  chk_managed_risk: "Có quản lý rủi ro không? (Tối đa 1% vốn mỗi lệnh)",
+  chk_lessons_learned: "Có ghi nhận bài học và mô hình lặp lại không?",
+  trade_permitted: "CHO PHÉP GIAO DỊCH",
+  review_shutdown: "KIỂM TRA & ĐÓNG PHIÊN",
+  start_review_btn: "Bắt đầu đánh giá",
+
+  // Learnings / Patterns
+  learnings: "HỌC TẬP",
+  pattern_library: "Thư viện mô hình",
+  add_pattern: "+ Thêm mô hình",
+  no_patterns_title: "Chưa có mô hình nào được lưu",
+  patterns_empty_desc: "Các mô hình sẽ được tạo từ những setup lặp lại và đánh giá hằng tuần.",
+  ghost_observed: "Mẫu tham khảo",
+  observed_lbl: "Đã quan sát",
+  win_rate_lbl: "Tỷ lệ thắng",
+  add_pattern_btn: "Thêm mô hình",
+  ghost_breakout_title: "Mô hình Breakout",
+  ghost_breakout_desc: "Giá phá vỡ tích lũy đi ngang kèm khối lượng giao dịch đột biến xác nhận...",
+  ghost_pullback_title: "Pullback Retest",
+  ghost_pullback_desc: "Vùng kháng cự cũ chuyển vai trò thành hỗ trợ mới sau cú breakout...",
+  ghost_observed_meta: "Mẫu tham khảo · 0 lệnh",
+
+  // Footer
+  footer_name: "Bảng mô phỏng giao dịch",
+  footer_mode: "CHỈ LÀ MÔ PHỎNG GIAO DỊCH PAPER",
+  last_sync: "Đồng bộ lần cuối",
+  capital: "Vốn",
+  not_advice: "Không phải lời khuyên tài chính",
+
+  // Modal
+  modal_title: "Ghi nhận giao dịch giả lập",
+  cancel: "Hủy",
+  add_trade_btn: "Thêm giao dịch",
+  entry_price: "Giá Entry",
+  stop_loss: "Dừng lỗ (SL)",
+  take_profit: "Chốt lời (TP)",
+  pnl_usd: "PnL (USD)",
+  r_result: "Kết quả R"
+};

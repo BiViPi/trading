@@ -8,68 +8,6 @@
 /* ── Font Import ─────────────────────────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap');
 
-/* ── Design Tokens ──────────────────────────────────────────── */
-:root {
-  /* Backgrounds */
-  --bg:           #07090f;
-  --surface:      #0d1117;
-  --surface-2:    #131922;
-  --surface-3:    #1a2234;
-
-  /* Borders */
-  --border:       rgba(255, 255, 255, 0.08);
-  --border-soft:  rgba(255, 255, 255, 0.04);
-  --border-hi:    rgba(59, 130, 246, 0.35);
-
-  /* Text */
-  --text-1:  #f0f2f5;
-  --text-2:  #a3aebb; /* Elevated contrast from #8b95a8 */
-  --text-3:  #6c7a9c; /* Elevated contrast from #5d6880 */
-
-  /* Accent: Electric Blue */
-  --blue:         #3b82f6;
-  --blue-hover:   #60a5fa;
-  --blue-glow:    rgba(59, 130, 246, 0.1);
-  --blue-soft:    rgba(59, 130, 246, 0.06);
-  --blue-border:  rgba(59, 130, 246, 0.2);
-
-  /* Cyan Accent for Total R */
-  --cyan:         #06b6d4;
-  --cyan-hover:   #22d3ee;
-  --cyan-soft:    rgba(6, 182, 212, 0.06);
-  --cyan-border:  rgba(6, 182, 212, 0.2);
-
-  /* Semantic colors */
-  --green:        #10b981;
-  --green-soft:   rgba(16, 185, 129, 0.06);
-  --green-border: rgba(16, 185, 129, 0.18);
-
-  --red:          #f43f5e;
-  --red-soft:     rgba(244, 63, 94, 0.06);
-  --red-border:   rgba(244, 63, 94, 0.18);
-
-  --amber:        #f59e0b;
-  --amber-soft:   rgba(245, 158, 11, 0.06);
-  --amber-border: rgba(245, 158, 11, 0.18);
-
-  --neutral-soft: rgba(108, 122, 156, 0.06);
-
-  /* Typography */
-  --font: 'Geist', 'Helvetica Neue', Arial, system-ui, sans-serif;
-  --mono: 'Geist Mono', 'Fira Code', ui-monospace, monospace;
-
-  /* Motion */
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in-out: cubic-bezier(0.45, 0, 0.55, 1);
-  --dur-fast: 160ms;
-  --dur-mid:  280ms;
-  --dur-slow: 420ms;
-
-  /* Shadows */
-  --shadow-card:  inset 0 1px 0 rgba(255, 255, 255, 0.025), 0 18px 40px rgba(0, 0, 0, 0.26);
-  --shadow-panel: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 20px 44px rgba(0, 0, 0, 0.32);
-  --shadow-nav:   0 8px 32px -8px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04);
-}
 
 /* ── Reset ──────────────────────────────────────────────────── */
 *, *::before, *::after {
@@ -147,8 +85,8 @@ a { text-decoration: none; }
 
 /* ── Unified Single-Border Card System ───────────────────────── */
 .double-bezel {
-  background: rgba(13, 17, 24, 0.92);
-  border: 1px solid rgba(148, 163, 184, 0.10);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
   padding: 0; /* Padding set to 0 to collapse dual boundary nesting */
   border-radius: 14px;
   box-shadow: var(--shadow-card);
@@ -160,7 +98,7 @@ a { text-decoration: none; }
   height: 100%;
 }
 .double-bezel:hover {
-  border-color: rgba(148, 163, 184, 0.16);
+  border-color: var(--border-hover);
   box-shadow: var(--shadow-panel);
 }
 .card-inner {
@@ -188,7 +126,7 @@ a { text-decoration: none; }
 .nav-shell {
   max-width: 84rem;
   margin: 0 auto;
-  background: rgba(10, 13, 20, 0.92);
+  background: var(--nav-bg);
   border: 1px solid rgba(148, 163, 184, 0.12); /* Unified single thin navbar border */
   padding: 0; /* Changed from 4px to 0 */
   border-radius: 12px;
@@ -469,17 +407,13 @@ a { text-decoration: none; }
 
 /* Primary active card (Equity - Premium single-border emphasis) */
 .kpi-card--active {
-  background: linear-gradient(145deg, rgba(59, 130, 246, 0.05) 0%, rgba(13, 17, 24, 0.95) 70%) !important;
+  background: var(--kpi-active-bg) !important;
   border-color: rgba(59, 130, 246, 0.20) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 18px 40px rgba(0, 0, 0, 0.32) !important;
+  box-shadow: var(--shadow-panel) !important;
 }
 .kpi-card--active:hover {
   border-color: rgba(59, 130, 246, 0.35) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.035),
-    0 20px 44px rgba(0, 0, 0, 0.42) !important;
+  box-shadow: var(--shadow-panel) !important;
 }
 .kpi-card--active .kpi-icon {
   background: rgba(59, 130, 246, 0.12);
@@ -488,17 +422,13 @@ a { text-decoration: none; }
 
 /* Secondary KPI custom weights (Total R with Cyan Glow Accent) */
 #kpi-card-totalr {
-  background: linear-gradient(145deg, rgba(6, 182, 212, 0.04) 0%, rgba(13, 17, 24, 0.95) 80%) !important;
+  background: var(--kpi-totalr-bg) !important;
   border-color: rgba(6, 182, 212, 0.20) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 18px 40px rgba(0, 0, 0, 0.32) !important;
+  box-shadow: var(--shadow-panel) !important;
 }
 #kpi-card-totalr:hover {
   border-color: rgba(6, 182, 212, 0.35) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.035),
-    0 20px 44px rgba(0, 0, 0, 0.42) !important;
+  box-shadow: var(--shadow-panel) !important;
 }
 #kpi-card-totalr .kpi-icon {
   background: var(--cyan-soft);
@@ -508,17 +438,13 @@ a { text-decoration: none; }
 
 /* Red Risk Alert styling for Max Drawdown when values > 0 */
 .kpi-card--risk {
-  background: linear-gradient(145deg, rgba(244, 63, 94, 0.03) 0%, rgba(13, 17, 24, 0.95) 80%) !important;
+  background: var(--kpi-risk-bg) !important;
   border-color: rgba(244, 63, 94, 0.25) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.02),
-    0 18px 40px rgba(0, 0, 0, 0.32) !important;
+  box-shadow: var(--shadow-panel) !important;
 }
 .kpi-card--risk:hover {
   border-color: rgba(244, 63, 94, 0.40) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 20px 44px rgba(0, 0, 0, 0.42) !important;
+  box-shadow: var(--shadow-panel) !important;
 }
 
 /* Compact stats grid for Win Rate Card */
@@ -1344,7 +1270,7 @@ a { text-decoration: none; }
 /* ── Modal (Add simulated trade) ────────────────────────────── */
 .modal-overlay {
   position: fixed; inset: 0;
-  background: rgba(7, 9, 15, 0.88);
+  background: var(--overlay-bg);
   backdrop-filter: blur(10px);
   z-index: 200;
   display: flex; align-items: center; justify-content: center;
@@ -1352,6 +1278,15 @@ a { text-decoration: none; }
   animation: fadeUp 180ms var(--ease-out);
 }
 .modal-overlay.hidden { display: none !important; }
+
+/* Theme Toggle Icon Visibility */
+.theme-icon-sun { display: block; }
+.theme-icon-moon { display: none; }
+
+html.light .theme-icon-sun { display: none !important; }
+html.light .theme-icon-moon { display: block !important; }
+html.dark .theme-icon-sun { display: block !important; }
+html.dark .theme-icon-moon { display: none !important; }
 .modal-wrapper { max-width: 480px; width: 100%; }
 .modal-inner {
   background: var(--surface);
