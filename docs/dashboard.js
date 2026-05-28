@@ -280,10 +280,10 @@
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: '#151b30',
-            borderColor: 'rgba(255, 255, 255, 0.08)',
+            backgroundColor: '#0d1117',
+            borderColor: 'rgba(255, 255, 255, 0.1)',
             borderWidth: 1,
-            titleFont: { family: 'Plus Jakarta Sans', size: 11, weight: '700' },
+            titleFont: { family: 'Geist', size: 11, weight: '700' },
             bodyFont: { family: 'Geist Mono', size: 12 },
             cornerRadius: 8,
             padding: 10,
@@ -1103,8 +1103,8 @@
           nav.style.top = '0px';
           nav.querySelector('.nav-shell').style.borderRadius = '0';
         } else {
-          nav.style.top = '16px';
-          nav.querySelector('.nav-shell').style.borderRadius = '20px';
+          nav.style.top = '14px';
+          nav.querySelector('.nav-shell').style.borderRadius = '18px';
         }
       }, { passive: true });
     }
