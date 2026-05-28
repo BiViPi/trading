@@ -528,6 +528,11 @@
       drawdownValEl.className = `kpi-value ${totalTrades > 0 && maxDrawdown > 0 ? 'text-loss' : ''}`;
     }
 
+    const drawdownCard = $('kpi-card-drawdown');
+    if (drawdownCard) {
+      drawdownCard.classList.toggle('kpi-card--risk', totalTrades > 0 && maxDrawdown > 0);
+    }
+
     // Sync Bottom stats section (Level 4 right)
     setText('meta-total-sessions', D.cumulative_stats.total_sessions ?? 0);
     setText('meta-trades-count', `${totalTrades} / ${D.cumulative_stats.total_no_trades ?? 0}`);
