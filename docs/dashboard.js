@@ -1359,16 +1359,15 @@
     renderReviews();
     renderPatterns();
 
-    // Scroll Navbar transparency effect
+    // Scroll Navbar transparency effect (keep rounded floating shell)
     const nav = $('main-nav');
     if (nav) {
+      const navShell = nav.querySelector('.nav-shell');
       window.addEventListener('scroll', () => {
         if (window.scrollY > 20) {
-          nav.style.top = '0px';
-          nav.querySelector('.nav-shell').style.borderRadius = '0';
+          navShell.classList.add('scrolled');
         } else {
-          nav.style.top = '14px';
-          nav.querySelector('.nav-shell').style.borderRadius = '16px';
+          navShell.classList.remove('scrolled');
         }
       }, { passive: true });
     }
