@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trading Simulation Dashboard</title>
+  <title>Trading Sim — Advanced Simulation Dashboard</title>
   <meta name="description" content="AI-powered crypto trading simulation dashboard — theo dõi chiến thuật, nhật ký giao dịch và hiệu suất theo thời gian thực." />
 
-  <!-- Fonts -->
+  <!-- Fonts: Plus Jakarta Sans for UI + Geist Mono for numbers/code -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -23,372 +22,676 @@
 <body>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     NAV
-═══════════════════════════════════════════════════════════════ -->
+     LEVEL 1: HEADER & TOP STATUS BAR
+     Floating double-bezel top navigation with status & CTA
+     ═══════════════════════════════════════════════════════════════ -->
 <nav class="nav" id="main-nav">
-  <div class="nav-inner">
-    <div class="nav-brand">
-      <div class="nav-logo">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path d="M10 2L18 6.5V13.5L10 18L2 13.5V6.5L10 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
-          <path d="M10 7L13.5 9V13L10 15L6.5 13V9L10 7Z" fill="var(--accent)" opacity="0.8"/>
-        </svg>
+  <div class="nav-shell">
+    <div class="nav-inner">
+      <!-- Left: Logo & Brand -->
+      <div class="nav-brand">
+        <div class="nav-logo">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+            <path d="M10 2L18 6.5V13.5L10 18L2 13.5V6.5L10 2Z" stroke="currentColor" stroke-width="1.8" fill="none"/>
+            <path d="M10 7L14 9.3v3.4L10 15l-4-2.3V9.3L10 7z" fill="var(--accent)" opacity="0.8"/>
+          </svg>
+        </div>
+        <div class="nav-title-group">
+          <span class="nav-title">Trading Sim</span>
+          <span class="nav-badge">PAPER</span>
+        </div>
       </div>
-      <span class="nav-title">Trading Sim</span>
-      <span class="nav-badge">PAPER</span>
-    </div>
 
-    <div class="nav-center">
-      <div class="live-indicator" id="live-indicator">
-        <span class="live-dot"></span>
-        <span class="live-text">LIVE</span>
+      <!-- Center: Live Feed & Market Context -->
+      <div class="nav-center">
+        <div class="live-status-pill" id="live-indicator-pill">
+          <span class="live-dot"></span>
+          <span class="live-status-text" id="live-status-lbl">WAITING</span>
+        </div>
+        <div class="market-ticker">
+          <span class="ticker-symbol" id="nav-symbol">BTCUSDT</span>
+          <span class="ticker-timeframe">H4</span>
+          <span class="ticker-divider">·</span>
+          <span class="ticker-price" id="nav-price">$68,542.50</span>
+        </div>
       </div>
-      <span class="nav-symbol" id="nav-symbol">BTCUSDT</span>
-      <span class="nav-price" id="nav-price">—</span>
-    </div>
 
-    <div class="nav-actions">
-      <div class="equity-chip">
-        <span class="equity-label">EQUITY</span>
-        <span class="equity-value" id="nav-equity">$10,000</span>
+      <!-- Right: Global Actions -->
+      <div class="nav-actions">
+        <button class="btn btn-primary" id="primary-cta">
+          <span>Start Session</span>
+          <div class="btn-icon">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M2.5 6H9.5M9.5 6L6.5 3M9.5 6L6.5 9" />
+            </svg>
+          </div>
+        </button>
+        
+        <a href="https://github.com/BiViPi/trading" target="_blank" class="btn-icon-only" title="GitHub Repository">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+          </svg>
+        </a>
       </div>
-      <a href="https://github.com" target="_blank" class="btn-ghost" id="github-link" title="GitHub Repository">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
-        </svg>
-      </a>
     </div>
   </div>
 </nav>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     MAIN
-═══════════════════════════════════════════════════════════════ -->
-<main class="main">
-  <div class="container">
+     MAIN CONTENT WRAPPER
+     ═══════════════════════════════════════════════════════════════ -->
+<main class="main-content">
+  <div class="container animate-fade-in">
 
-    <!-- ── SECTION: Hero Stats ─────────────────────────────────── -->
-    <section class="hero-stats" id="overview">
-      <div class="stats-grid">
+    <!-- ── LEVEL 2: HERO KPI CARDS ─────────────────────────────── -->
+    <section class="kpi-section" id="kpi-overview">
+      <div class="kpi-grid">
 
-        <div class="stat-card stat-card--equity">
-          <div class="stat-icon">💰</div>
-          <div class="stat-body">
-            <div class="stat-label">EQUITY</div>
-            <div class="stat-value" id="stat-equity">$10,000.00</div>
-            <div class="stat-delta positive" id="stat-equity-delta">+$0.00 (0.00%)</div>
+        <!-- Equity KPI -->
+        <div class="double-bezel kpi-card kpi-card--active" id="kpi-card-equity">
+          <div class="kpi-card-inner">
+            <div class="kpi-header">
+              <span class="kpi-label">EQUITY</span>
+              <div class="kpi-icon">💰</div>
+            </div>
+            <div class="kpi-value-group">
+              <span class="kpi-value" id="kpi-equity">$10,000.00</span>
+              <span class="kpi-subtext" id="kpi-equity-sub">Starting balance</span>
+            </div>
+            <div class="kpi-badge neutral" id="kpi-equity-badge">+$0.00 (0.00%)</div>
           </div>
         </div>
 
-        <div class="stat-card">
-          <div class="stat-icon">📊</div>
-          <div class="stat-body">
-            <div class="stat-label">WIN RATE</div>
-            <div class="stat-value" id="stat-winrate">—</div>
-            <div class="stat-delta muted" id="stat-winrate-sub">0 trades</div>
+        <!-- Win Rate KPI -->
+        <div class="double-bezel kpi-card" id="kpi-card-winrate">
+          <div class="kpi-card-inner">
+            <div class="kpi-header">
+              <span class="kpi-label">WIN RATE</span>
+              <div class="kpi-icon">📈</div>
+            </div>
+            <div class="kpi-value-group">
+              <span class="kpi-value" id="kpi-winrate">0.0%</span>
+              <span class="kpi-subtext" id="kpi-winrate-sub">No closed trades yet</span>
+            </div>
+            <div class="kpi-badge neutral" id="kpi-winrate-badge">0 / 0 wins</div>
           </div>
         </div>
 
-        <div class="stat-card">
-          <div class="stat-icon">⚡</div>
-          <div class="stat-body">
-            <div class="stat-label">TOTAL R</div>
-            <div class="stat-value" id="stat-total-r">0.00R</div>
-            <div class="stat-delta muted" id="stat-avg-r">Avg 0.00R / trade</div>
+        <!-- Total R KPI -->
+        <div class="double-bezel kpi-card" id="kpi-card-totalr">
+          <div class="kpi-card-inner">
+            <div class="kpi-header">
+              <span class="kpi-label">TOTAL R-MULTIPLE</span>
+              <div class="kpi-icon">⚡</div>
+            </div>
+            <div class="kpi-value-group">
+              <span class="kpi-value" id="kpi-totalr">0.00R</span>
+              <span class="kpi-subtext" id="kpi-totalr-sub">Risk-adjusted return</span>
+            </div>
+            <div class="kpi-badge neutral" id="kpi-totalr-badge">Avg: 0.00R / trade</div>
           </div>
         </div>
 
-        <div class="stat-card">
-          <div class="stat-icon">🛡️</div>
-          <div class="stat-body">
-            <div class="stat-label">MAX DRAWDOWN</div>
-            <div class="stat-value" id="stat-drawdown">0.00%</div>
-            <div class="stat-delta muted" id="stat-adherence">Adherence: 100%</div>
+        <!-- Max Drawdown KPI -->
+        <div class="double-bezel kpi-card" id="kpi-card-drawdown">
+          <div class="kpi-card-inner">
+            <div class="kpi-header">
+              <span class="kpi-label">MAX DRAWDOWN</span>
+              <div class="kpi-icon">🛡️</div>
+            </div>
+            <div class="kpi-value-group">
+              <span class="kpi-value" id="kpi-drawdown">0.00%</span>
+              <span class="kpi-subtext" id="kpi-drawdown-sub">Peak-to-trough loss</span>
+            </div>
+            <div class="kpi-badge neutral" id="kpi-drawdown-badge">Adherence: 100%</div>
           </div>
         </div>
 
       </div>
     </section>
 
-    <!-- ── SECTION: Bento Grid ─────────────────────────────────── -->
-    <section class="bento-grid">
+    <!-- ── LEVEL 3: PERFORMANCE CHART & LIVE SESSION ────────────── -->
+    <section class="dashboard-row level-3-row">
+      <div class="grid-12">
+        
+        <!-- Left: Performance Curve Panel (8 cols) -->
+        <div class="col-8 double-bezel chart-panel-wrap">
+          <div class="card-inner flex-column height-full">
+            <div class="card-header">
+              <div class="card-title-group">
+                <span class="card-eyebrow">PERFORMANCE CURVE</span>
+                <h3 class="card-title">Biểu đồ hiệu suất</h3>
+              </div>
+              <div class="chart-toggle-toolbar">
+                <button class="toggle-btn active" data-chart-type="equity" onclick="switchChartType('equity')">Equity</button>
+                <button class="toggle-btn" data-chart-type="r_multiple" onclick="switchChartType('r_multiple')">R-Multiple</button>
+                <button class="toggle-btn" data-chart-type="drawdown" onclick="switchChartType('drawdown')">Drawdown</button>
+              </div>
+            </div>
 
-      <!-- Equity Curve Chart -->
-      <div class="bento-tile bento-tile--wide card-dark" id="equity-chart-tile">
-        <div class="tile-header">
-          <div class="tile-title-group">
-            <span class="tile-badge">PERFORMANCE</span>
-            <h2 class="tile-heading">Equity Curve</h2>
-          </div>
-          <div class="tile-meta" id="equity-chart-meta">$10,000 starting capital</div>
-        </div>
-        <div class="chart-container">
-          <canvas id="equity-chart" aria-label="Equity curve chart"></canvas>
-          <div class="chart-empty" id="equity-empty">
-            <div class="empty-icon">📈</div>
-            <div class="empty-text">Equity curve sẽ xuất hiện sau trade đầu tiên</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Active Session -->
-      <div class="bento-tile card-dark" id="active-session-tile">
-        <div class="tile-header">
-          <div class="tile-title-group">
-            <span class="tile-badge tile-badge--live">LIVE SESSION</span>
-            <h2 class="tile-heading">Trạng thái Agent</h2>
-          </div>
-        </div>
-        <div class="session-status" id="session-status">
-          <div class="status-indicator status-idle">
-            <div class="status-dot"></div>
-            <span class="status-text">Chờ kích hoạt</span>
-          </div>
-          <div class="session-details" id="session-details">
-            <div class="session-row">
-              <span class="session-key">Symbol</span>
-              <span class="session-val mono" id="sess-symbol">—</span>
-            </div>
-            <div class="session-row">
-              <span class="session-key">Chiến thuật</span>
-              <span class="session-val" id="sess-strategy">—</span>
-            </div>
-            <div class="session-row">
-              <span class="session-key">Giá vào</span>
-              <span class="session-val mono" id="sess-entry">—</span>
-            </div>
-            <div class="session-row">
-              <span class="session-key">Stop Loss</span>
-              <span class="session-val mono negative" id="sess-sl">—</span>
-            </div>
-            <div class="session-row">
-              <span class="session-key">Take Profit</span>
-              <span class="session-val mono positive" id="sess-tp">—</span>
-            </div>
-            <div class="session-row">
-              <span class="session-key">R:R</span>
-              <span class="session-val accent" id="sess-rr">—</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Agent Reasoning -->
-        <div class="reasoning-box" id="reasoning-box">
-          <div class="reasoning-label">AGENT REASONING</div>
-          <div class="reasoning-text" id="reasoning-text">
-            Chưa có phân tích. Agent sẽ ghi lý do chọn chiến thuật tại đây sau khi được kích hoạt.
-          </div>
-        </div>
-      </div>
-
-      <!-- Win/Loss Distribution -->
-      <div class="bento-tile card-dark" id="distribution-tile">
-        <div class="tile-header">
-          <div class="tile-title-group">
-            <span class="tile-badge">STATISTICS</span>
-            <h2 class="tile-heading">Phân phối</h2>
-          </div>
-        </div>
-        <div class="donut-container">
-          <canvas id="distribution-chart" aria-label="Win/loss distribution"></canvas>
-          <div class="donut-center" id="donut-center">
-            <div class="donut-pct">—</div>
-            <div class="donut-sub">win rate</div>
-          </div>
-        </div>
-        <div class="dist-legend">
-          <div class="legend-item">
-            <span class="legend-dot" style="background: #22d3a0;"></span>
-            <span class="legend-label">WIN</span>
-            <span class="legend-val" id="dist-wins">0</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-dot" style="background: #f75555;"></span>
-            <span class="legend-label">LOSS</span>
-            <span class="legend-val" id="dist-losses">0</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-dot" style="background: #8c8c99;"></span>
-            <span class="legend-label">BE</span>
-            <span class="legend-val" id="dist-be">0</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Strategy Usage -->
-      <div class="bento-tile card-dark" id="strategy-tile">
-        <div class="tile-header">
-          <div class="tile-title-group">
-            <span class="tile-badge">STRATEGIES</span>
-            <h2 class="tile-heading">Hiệu suất chiến thuật</h2>
-          </div>
-        </div>
-        <div class="strategy-list" id="strategy-list">
-          <div class="strategy-item">
-            <div class="strategy-info">
-              <span class="strategy-name">EMA Trend</span>
-              <span class="strategy-id mono">ema_trend_v1</span>
-            </div>
-            <div class="strategy-stats">
-              <span class="strategy-count" id="strat-ema-count">0 trades</span>
-              <span class="strategy-r" id="strat-ema-r">0.0R</span>
-            </div>
-            <div class="strategy-bar-wrap">
-              <div class="strategy-bar" id="strat-ema-bar" style="width: 0%"></div>
-            </div>
-          </div>
-          <div class="strategy-item">
-            <div class="strategy-info">
-              <span class="strategy-name">RSI Reversal</span>
-              <span class="strategy-id mono">rsi_reversal_v1</span>
-            </div>
-            <div class="strategy-stats">
-              <span class="strategy-count" id="strat-rsi-count">0 trades</span>
-              <span class="strategy-r" id="strat-rsi-r">0.0R</span>
-            </div>
-            <div class="strategy-bar-wrap">
-              <div class="strategy-bar" id="strat-rsi-bar" style="width: 0%"></div>
-            </div>
-          </div>
-          <div class="strategy-item">
-            <div class="strategy-info">
-              <span class="strategy-name">Breakout Retest</span>
-              <span class="strategy-id mono">breakout_retest_v1</span>
-            </div>
-            <div class="strategy-stats">
-              <span class="strategy-count" id="strat-bo-count">0 trades</span>
-              <span class="strategy-r" id="strat-bo-r">0.0R</span>
-            </div>
-            <div class="strategy-bar-wrap">
-              <div class="strategy-bar" id="strat-bo-bar" style="width: 0%"></div>
-            </div>
-          </div>
-          <div class="strategy-item strategy-item--notrade">
-            <div class="strategy-info">
-              <span class="strategy-name">No-Trade</span>
-              <span class="strategy-id mono">discipline</span>
-            </div>
-            <div class="strategy-stats">
-              <span class="strategy-count" id="strat-nt-count">0 sessions</span>
-              <span class="strategy-r accent" id="strat-nt-badge">✓</span>
-            </div>
-            <div class="strategy-bar-wrap">
-              <div class="strategy-bar strategy-bar--nt" id="strat-nt-bar" style="width: 0%"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- ── SECTION: Trade Log Table ────────────────────────────── -->
-    <section class="section" id="log">
-      <div class="section-header">
-        <div>
-          <span class="section-badge">JOURNAL</span>
-          <h2 class="section-heading">Nhật ký giao dịch</h2>
-        </div>
-        <div class="filter-row" id="filter-row">
-          <button class="filter-btn active" data-filter="all" onclick="filterTrades('all')">All</button>
-          <button class="filter-btn" data-filter="WIN" onclick="filterTrades('WIN')">Win</button>
-          <button class="filter-btn" data-filter="LOSS" onclick="filterTrades('LOSS')">Loss</button>
-          <button class="filter-btn" data-filter="NO-TRADE" onclick="filterTrades('NO-TRADE')">No-Trade</button>
-        </div>
-      </div>
-
-      <div class="table-wrap card-dark">
-        <table class="trade-table" id="trade-table">
-          <thead>
-            <tr>
-              <th>Ngày</th>
-              <th>Symbol</th>
-              <th>Direction</th>
-              <th>Strategy</th>
-              <th>Entry</th>
-              <th>SL</th>
-              <th>TP</th>
-              <th>R:R</th>
-              <th>Result</th>
-              <th>PnL</th>
-              <th>R</th>
-            </tr>
-          </thead>
-          <tbody id="trade-tbody">
-            <tr class="empty-row">
-              <td colspan="11">
-                <div class="table-empty">
-                  <span class="empty-icon">📋</span>
-                  <span>Chưa có giao dịch nào. Agent sẽ ghi nhật ký sau phiên đầu tiên.</span>
+            <div class="chart-display-area">
+              <canvas id="equity-chart" aria-label="Performance chart"></canvas>
+              
+              <!-- Custom Visual Empty State -->
+              <div class="empty-state chart-empty-state" id="chart-empty">
+                <div class="empty-state-visual">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M3 12L7 8L11 12L15 6L21 12M3 18H21" stroke-dasharray="2 2" />
+                    <circle cx="15" cy="6" r="2" fill="var(--accent)" stroke="none"/>
+                  </svg>
+                  <div class="empty-glow"></div>
                 </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                <h4 class="empty-title">Chưa có dữ liệu hiệu suất</h4>
+                <p class="empty-desc">Kích hoạt một phiên giao dịch giả lập hoặc thêm lệnh mới để tạo biểu đồ tăng trưởng.</p>
+                <button class="btn btn-secondary btn-sm" onclick="triggerSessionSim()">
+                  <span>Start Live Session</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Live Session Status & AI Assistant (4 cols) -->
+        <div class="col-4 double-bezel active-session-panel">
+          <div class="card-inner flex-column height-full">
+            <div class="card-header">
+              <div class="card-title-group">
+                <span class="card-eyebrow eyebrow-live">LIVE MONITOR</span>
+                <h3 class="card-title">Phiên giao dịch</h3>
+              </div>
+              <span class="status-badge" id="session-badge-status">OFFLINE</span>
+            </div>
+
+            <!-- Inactive State -->
+            <div class="session-inactive-state" id="session-inactive-box">
+              <div class="empty-state">
+                <div class="empty-state-visual small">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 8V12L14 14" />
+                  </svg>
+                </div>
+                <h4 class="empty-title">Agent đang Offline</h4>
+                <p class="empty-desc">Không có phiên giao dịch hoạt động tại thời điểm này. Bấm nút để khởi chạy agent.</p>
+                <button class="btn btn-primary btn-sm" onclick="triggerSessionSim()">
+                  <span>Start Session</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Active State -->
+            <div class="session-active-state hidden" id="session-active-box">
+              <div class="session-param-grid">
+                <div class="param-row">
+                  <span class="param-key">Symbol</span>
+                  <span class="param-val mono" id="active-symbol">BTCUSDT</span>
+                </div>
+                <div class="param-row">
+                  <span class="param-key">Chiến thuật</span>
+                  <span class="param-val" id="active-strategy">—</span>
+                </div>
+                <div class="param-row">
+                  <span class="param-key">Trạng thái</span>
+                  <span class="param-val status-color-val" id="active-status">SCANNING...</span>
+                </div>
+                <div class="param-row">
+                  <span class="param-key">Setup Direction</span>
+                  <span class="param-val direction-val mono" id="active-direction">—</span>
+                </div>
+              </div>
+
+              <div class="active-trade-parameters hidden" id="active-trade-params">
+                <div class="mini-grid">
+                  <div class="param-cell">
+                    <span class="cell-label">ENTRY</span>
+                    <span class="cell-value mono" id="active-entry">—</span>
+                  </div>
+                  <div class="param-cell">
+                    <span class="cell-label">STOP LOSS</span>
+                    <span class="cell-value mono negative" id="active-sl">—</span>
+                  </div>
+                  <div class="param-cell">
+                    <span class="cell-label">TAKE PROFIT</span>
+                    <span class="cell-value mono positive" id="active-tp">—</span>
+                  </div>
+                  <div class="param-cell">
+                    <span class="cell-label">RISK R:R</span>
+                    <span class="cell-value accent mono" id="active-rr">—</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- AI reasoning section -->
+              <div class="ai-reasoning-panel card-dark">
+                <div class="ai-header">
+                  <div class="ai-title">
+                    <svg class="ai-spark" width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                      <path d="M6 0L7.5 4.5L12 6L7.5 7.5L6 12L4.5 7.5L0 6L4.5 4.5L6 0Z" />
+                    </svg>
+                    <span>AI Reasoning Analyst</span>
+                  </div>
+                  <button class="btn-inline" id="btn-run-agent" onclick="triggerAgentAnalysis()">Run Agent</button>
+                </div>
+                
+                <!-- Idle State -->
+                <div class="ai-idle-content" id="ai-reasoning-idle">
+                  <p class="ai-muted-text">Agent đang chờ. Kích hoạt phân tích thị trường để nhận diện xu hướng và cơ hội setup.</p>
+                </div>
+
+                <!-- Analyzing Skeleton -->
+                <div class="ai-loading-content hidden" id="ai-reasoning-loading">
+                  <div class="skeleton-line w-full"></div>
+                  <div class="skeleton-line w-3-4"></div>
+                  <div class="skeleton-line w-5-6"></div>
+                </div>
+
+                <!-- Structured Reasoning Content -->
+                <div class="ai-structured-content hidden" id="ai-reasoning-active">
+                  <div class="reasoning-block">
+                    <span class="block-label">Market Context</span>
+                    <p class="block-text" id="ai-context">—</p>
+                  </div>
+                  <div class="reasoning-block">
+                    <span class="block-label">Setup Quality</span>
+                    <p class="block-text" id="ai-setup">—</p>
+                  </div>
+                  <div class="reasoning-block">
+                    <span class="block-label">Risk Notes</span>
+                    <p class="block-text warning-text" id="ai-risk">—</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
       </div>
     </section>
 
-    <!-- ── SECTION: Daily Reviews ──────────────────────────────── -->
-    <section class="section" id="reviews">
-      <div class="section-header">
-        <div>
-          <span class="section-badge">REVIEW</span>
-          <h2 class="section-heading">Daily Reviews</h2>
-        </div>
-      </div>
+    <!-- ── LEVEL 4: JOURNAL & STRATEGIES ───────────────────────── -->
+    <section class="dashboard-row level-4-row">
+      <div class="grid-12">
 
-      <div class="reviews-grid" id="reviews-grid">
-        <div class="review-empty card-dark">
-          <div class="empty-icon">🧠</div>
-          <div class="empty-text">Reviews sẽ xuất hiện sau mỗi phiên giao dịch kết thúc.</div>
+        <!-- Left: Trading Journal Table (8 cols) -->
+        <div class="col-8 double-bezel journal-panel-wrap">
+          <div class="card-inner flex-column height-full">
+            <div class="card-header border-none">
+              <div class="card-title-group">
+                <span class="card-eyebrow">JOURNAL LOG</span>
+                <h3 class="card-title">Nhật ký giao dịch</h3>
+              </div>
+            </div>
+
+            <!-- Toolbar: Search, Filters & Add Trade -->
+            <div class="journal-toolbar">
+              <div class="toolbar-left">
+                <div class="search-input-wrapper">
+                  <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="M21 21L16.65 16.65" />
+                  </svg>
+                  <input type="text" id="journal-search" placeholder="Tìm symbol, strategy..." oninput="filterAndRenderTable()" />
+                </div>
+                <div class="filter-group">
+                  <button class="filter-btn active" data-filter="all" onclick="setJournalFilter('all')">All</button>
+                  <button class="filter-btn" data-filter="WIN" onclick="setJournalFilter('WIN')">Wins</button>
+                  <button class="filter-btn" data-filter="LOSS" onclick="setJournalFilter('LOSS')">Losses</button>
+                  <button class="filter-btn" data-filter="BE" onclick="setJournalFilter('BE')">Breakeven</button>
+                  <button class="filter-btn" data-filter="NO-TRADE" onclick="setJournalFilter('NO-TRADE')">No-Trade</button>
+                </div>
+              </div>
+              <div class="toolbar-right">
+                <select id="journal-sort" onchange="filterAndRenderTable()" class="select-menu">
+                  <option value="date-desc">Mới nhất</option>
+                  <option value="date-asc">Cũ nhất</option>
+                  <option value="pnl-desc">PnL cao nhất</option>
+                  <option value="pnl-asc">PnL thấp nhất</option>
+                  <option value="r-desc">R cao nhất</option>
+                </select>
+                <button class="btn btn-secondary btn-sm" onclick="openAddTradeModal()">
+                  <span>Add Trade</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Table content container -->
+            <div class="table-container-outer">
+              <div class="table-wrap">
+                <table class="trade-table">
+                  <thead>
+                    <tr>
+                      <th class="text-left">Ngày</th>
+                      <th class="text-left">Symbol</th>
+                      <th class="text-left">Direction</th>
+                      <th class="text-left">Strategy</th>
+                      <th class="text-right">Entry</th>
+                      <th class="text-right">SL</th>
+                      <th class="text-right">TP</th>
+                      <th class="text-center">R:R</th>
+                      <th class="text-center">Result</th>
+                      <th class="text-right">PnL</th>
+                      <th class="text-right">R-Result</th>
+                    </tr>
+                  </thead>
+                  <tbody id="journal-tbody">
+                    <!-- Dynamic rendering rows -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Table Empty State -->
+              <div class="empty-state table-empty-state hidden" id="table-empty">
+                <div class="empty-state-visual small">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="4" width="18" height="16" rx="2" />
+                    <line x1="7" y1="8" x2="17" y2="8" />
+                    <line x1="7" y1="12" x2="17" y2="12" />
+                    <line x1="7" y1="16" x2="13" y2="16" />
+                  </svg>
+                </div>
+                <h4 class="empty-title">Chưa ghi nhận giao dịch nào</h4>
+                <p class="empty-desc">Thực hiện trade đầu tiên để bắt đầu lưu trữ nhật ký phân tích.</p>
+                <button class="btn btn-secondary btn-sm" onclick="openAddTradeModal()">
+                  <span>Add First Trade</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
         </div>
+
+        <!-- Right: Strategy Performance & Stats Grid (4 cols) -->
+        <div class="col-4 double-bezel strategies-panel-wrap">
+          <div class="card-inner flex-column height-full">
+            <div class="card-header">
+              <div class="card-title-group">
+                <span class="card-eyebrow">METRICS</span>
+                <h3 class="card-title">Chiến thuật & Kỷ luật</h3>
+              </div>
+            </div>
+
+            <!-- Strategy metrics list -->
+            <div class="strategy-metrics-section">
+              <h4 class="mini-section-title">Hiệu suất Chiến thuật</h4>
+              
+              <div class="strategy-list" id="strategy-list-container">
+                <!-- Dynamic strategies render -->
+              </div>
+              
+              <!-- Empty state for strategies -->
+              <div class="empty-state inline-empty-state hidden" id="strategies-empty">
+                <p class="empty-desc text-center">Chưa có số liệu thống kê chiến thuật.</p>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Discipline and account stats -->
+            <div class="compact-stats-section">
+              <h4 class="mini-section-title">Thống kê Kỷ luật & Rủi ro</h4>
+              <div class="compact-stats-list">
+                
+                <div class="compact-stat-row">
+                  <span class="stat-meta-label">Total Sessions Completed</span>
+                  <span class="stat-meta-value mono" id="meta-total-sessions">0</span>
+                </div>
+                <div class="compact-stat-row">
+                  <span class="stat-meta-label">Total Trades / No-Trades</span>
+                  <span class="stat-meta-value mono" id="meta-trades-count">0 / 0</span>
+                </div>
+                <div class="compact-stat-row">
+                  <span class="stat-meta-label">Discipline Adherence Rate</span>
+                  <span class="stat-meta-value mono text-win" id="meta-adherence">100.0%</span>
+                </div>
+                <div class="compact-stat-row">
+                  <span class="stat-meta-label">Average R per Trade</span>
+                  <span class="stat-meta-value mono" id="meta-avg-r">0.00R</span>
+                </div>
+                <div class="compact-stat-row">
+                  <span class="stat-meta-label">Max Simulated Drawdown</span>
+                  <span class="stat-meta-value mono text-loss" id="meta-max-dd">0.00%</span>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+
       </div>
     </section>
 
-    <!-- ── SECTION: Pattern Library ────────────────────────────── -->
-    <section class="section" id="patterns">
-      <div class="section-header">
-        <div>
-          <span class="section-badge">LEARNING</span>
-          <h2 class="section-heading">Pattern Library</h2>
-        </div>
-        <span class="section-meta" id="pattern-count">0 patterns</span>
-      </div>
+    <!-- ── LEVEL 5: DAILY REVIEWS & PATTERN LIBRARY ────────────── -->
+    <section class="dashboard-row level-5-row">
+      <div class="grid-12">
 
-      <div class="patterns-grid" id="patterns-grid">
-        <div class="pattern-empty card-dark">
-          <div class="empty-icon">🔍</div>
-          <div class="empty-text">Pattern đầu tiên sẽ được đúc kết sau Week 1 review.</div>
+        <!-- Left: Daily Review logs (6 cols) -->
+        <div class="col-6 double-bezel reviews-panel-wrap">
+          <div class="card-inner flex-column height-full">
+            <div class="card-header">
+              <div class="card-title-group">
+                <span class="card-eyebrow">REVIEWS</span>
+                <h3 class="card-title">Nhật ký Đánh giá Hàng ngày</h3>
+              </div>
+              <button class="btn-inline" onclick="triggerReviewSim()">Start Review</button>
+            </div>
+
+            <!-- Content Area -->
+            <div class="reviews-content-area" id="reviews-container">
+              <!-- Dynamic review list -->
+            </div>
+
+            <!-- Reviews Empty State (Self-check checklist placeholder) -->
+            <div class="empty-state reviews-empty-state" id="reviews-empty">
+              <div class="empty-state-visual small">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M9 11L11 13L15 9M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" />
+                </svg>
+              </div>
+              <h4 class="empty-title">Chưa có bài đánh giá nào</h4>
+              <p class="empty-desc">Mỗi cuối ngày giao dịch, agent sẽ tự động kiểm tra kỷ luật:</p>
+              
+              <ul class="empty-checklist">
+                <li>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-win)" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  <span>Giao dịch hoàn toàn tuân thủ kế hoạch?</span>
+                </li>
+                <li>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-win)" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  <span>Quy mô rủi ro tối đa 1% tài khoản?</span>
+                </li>
+                <li>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-win)" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  <span>Rút ra bài học đúc kết mẫu nến mới?</span>
+                </li>
+              </ul>
+              
+              <button class="btn btn-secondary btn-sm" onclick="triggerReviewSim()">
+                <span>Tạo Review Giả Lập</span>
+              </button>
+            </div>
+
+          </div>
         </div>
+
+        <!-- Right: Pattern Library grid (6 cols) -->
+        <div class="col-6 double-bezel patterns-panel-wrap">
+          <div class="card-inner flex-column height-full">
+            <div class="card-header">
+              <div class="card-title-group">
+                <span class="card-eyebrow">LEARNINGS</span>
+                <h3 class="card-title">Thư viện Mẫu nến & Mô hình</h3>
+              </div>
+              <button class="btn-inline" onclick="triggerPatternSim()">Add Pattern</button>
+            </div>
+
+            <!-- Content Area (Grid of Patterns) -->
+            <div class="patterns-grid-area hidden" id="patterns-grid-container">
+              <!-- Dynamic patterns grid -->
+            </div>
+
+            <!-- Patterns Empty State & Skeletal Placeholders -->
+            <div class="patterns-empty-state" id="patterns-empty">
+              <div class="empty-state">
+                <div class="empty-state-visual small">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7" />
+                  </svg>
+                </div>
+                <h4 class="empty-title">Chưa lưu nhận diện mô hình</h4>
+                <p class="empty-desc">Nhận diện mẫu giá từ các phiên giao dịch sẽ được đưa vào thư viện:</p>
+              </div>
+
+              <!-- Skeletal Preview Grids -->
+              <div class="skeletal-grid">
+                <div class="skeletal-card">
+                  <div class="sk-title">Breakout Model</div>
+                  <div class="sk-desc">Mô hình tích lũy ngang phá vỡ kèm khối lượng lớn xác nhận xu hướng...</div>
+                  <div class="sk-meta">Placeholder · 0 trades</div>
+                </div>
+                <div class="skeletal-card">
+                  <div class="sk-title">Pullback Retest</div>
+                  <div class="sk-desc">Tìm điểm entry tại vùng hỗ trợ/kháng cự cũ sau cú breakout...</div>
+                  <div class="sk-meta">Placeholder · 0 trades</div>
+                </div>
+              </div>
+
+              <div class="text-center mt-16">
+                <button class="btn btn-secondary btn-sm" onclick="triggerPatternSim()">
+                  <span>Tạo Pattern Giả Lập</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
       </div>
     </section>
 
-  </div><!-- /container -->
+  </div>
 </main>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     FOOTER
-═══════════════════════════════════════════════════════════════ -->
+     FOOTER SECTION
+     ═══════════════════════════════════════════════════════════════ -->
 <footer class="footer">
   <div class="footer-inner">
     <div class="footer-left">
       <div class="nav-logo">
-        <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
           <path d="M10 2L18 6.5V13.5L10 18L2 13.5V6.5L10 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
-          <path d="M10 7L13.5 9V13L10 15L6.5 13V9L10 7Z" fill="var(--accent)" opacity="0.8"/>
+          <path d="M10 7L14 9.3v3.4L10 15l-4-2.3V9.3L10 7z" fill="var(--accent)" opacity="0.8"/>
         </svg>
       </div>
-      <span class="footer-name">Trading Simulation</span>
-      <span class="footer-mode">PAPER TRADING ONLY</span>
+      <span class="footer-name">Trading Simulation Dashboard</span>
+      <span class="footer-mode">SIMULATED PAPER TRADING ONLY</span>
     </div>
+    
     <div class="footer-right">
-      <span class="footer-meta">Last updated: <span id="last-updated">—</span></span>
+      <span class="footer-meta">Last sync: <span id="last-updated">—</span></span>
       <span class="footer-divider">·</span>
-      <span class="footer-meta">Capital: $10,000 simulated</span>
+      <span class="footer-meta">Starting Capital: $10,000 USD</span>
       <span class="footer-divider">·</span>
-      <span class="footer-meta">Not financial advice</span>
+      <span class="footer-meta text-muted">Not financial advice</span>
     </div>
   </div>
 </footer>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL: ADD MANUAL TRADE SIMULATOR
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="add-trade-modal">
+  <div class="double-bezel modal-wrapper">
+    <div class="modal-inner">
+      <div class="modal-header">
+        <h3 class="modal-title">Ghi nhận Giao dịch Giả lập</h3>
+        <button class="btn-close" onclick="closeAddTradeModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      
+      <form id="add-trade-form" onsubmit="handleFormSubmit(event)">
+        <div class="form-grid">
+          
+          <div class="form-group col-6">
+            <label for="trade-symbol">Symbol</label>
+            <input type="text" id="trade-symbol" value="BTCUSDT" placeholder="e.g. BTCUSDT" required />
+          </div>
+          
+          <div class="form-group col-6">
+            <label for="trade-direction">Direction</label>
+            <select id="trade-direction" required>
+              <option value="LONG">LONG</option>
+              <option value="SHORT">SHORT</option>
+            </select>
+          </div>
+
+          <div class="form-group col-6">
+            <label for="trade-strategy">Strategy</label>
+            <select id="trade-strategy" required>
+              <option value="ema_trend_v1">EMA Trend (ema_trend_v1)</option>
+              <option value="rsi_reversal_v1">RSI Reversal (rsi_reversal_v1)</option>
+              <option value="breakout_retest_v1">Breakout Retest (breakout_retest_v1)</option>
+            </select>
+          </div>
+
+          <div class="form-group col-6">
+            <label for="trade-result">Result</label>
+            <select id="trade-result" required onchange="toggleFormPnlInputs()">
+              <option value="WIN">WIN</option>
+              <option value="LOSS">LOSS</option>
+              <option value="BREAKEVEN">BREAKEVEN</option>
+            </select>
+          </div>
+
+          <div class="form-group col-4">
+            <label for="trade-entry">Entry Price</label>
+            <input type="number" step="any" id="trade-entry" value="68500" required />
+          </div>
+          
+          <div class="form-group col-4">
+            <label for="trade-sl">Stop Loss</label>
+            <input type="number" step="any" id="trade-sl" value="67800" required />
+          </div>
+          
+          <div class="form-group col-4">
+            <label for="trade-tp">Take Profit</label>
+            <input type="number" step="any" id="trade-tp" value="70600" required />
+          </div>
+
+          <div class="form-group col-6">
+            <label for="trade-pnl">PnL (USD)</label>
+            <input type="number" step="0.01" id="trade-pnl" value="300" required />
+          </div>
+          
+          <div class="form-group col-6">
+            <label for="trade-rresult">R-Result</label>
+            <input type="number" step="0.01" id="trade-rresult" value="3.0" required />
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeAddTradeModal()">Hủy</button>
+          <button type="submit" class="btn btn-primary">
+            <span>Thêm Lệnh</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 <script src="dashboard.js"></script>
 </body>
