@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   Trading Simulation Dashboard — JavaScript Overhaul
+   Trading Simulation Dashboard — JavaScript Overhaul (v2.1)
    Handles Chart.js rendering, search/filter/sort logic,
    and client-side Interactive Simulation Mode.
    ═══════════════════════════════════════════════════════════════ */
@@ -12,7 +12,7 @@
   if (!D) {
     console.warn('[Dashboard] window.TRADING_DATA not found. Initializing empty fallback.');
     D = {
-      meta: { last_updated: new Date().toISOString(), schema_version: "1.0" },
+      meta: { last_updated: new Date().toISOString(), schema_version: "1.1" },
       account: { equity_start: 10000, equity_current: 10000, currency: "USD", mode: "SIMULATED_PAPER_TRADING" },
       cumulative_stats: {
         total_sessions: 0, total_trades: 0, total_no_trades: 0,
@@ -36,7 +36,7 @@
     window.TRADING_DATA = D;
   }
 
-  // Ensure equity curve has starting point if it has values
+  // Ensure equity curve has starting point
   if (D.equity_curve.length === 0 && D.trades.length > 0) {
     rebuildEquityCurve();
   }
@@ -46,8 +46,6 @@
   let activeChartType = 'equity'; // equity, r_multiple, drawdown
   let activeJournalFilter = 'all'; // all, WIN, LOSS, BE, NO-TRADE
   let mainChartInstance = null;
-  let simulatedTimerInterval = null;
-  let simulatedSecondsElapsed = 0;
 
   // ── Helper functions ──────────────────────────────────────────
   const $ = (id) => document.getElementById(id);
@@ -66,12 +64,18 @@
       try {
         const d = new Date(iso);
         if (isNaN(d.getTime())) return iso;
-        return d.toLocaleDateString('vi-VN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+        return d.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
       } catch {
         return iso;
       }
     }
   };
+
+  // Safe DOM setter helper
+  function setText(id, value) {
+    const el = $(id);
+    if (el) el.textContent = value;
+  }
 
   // ── 1. Update Layout Hierarchies & Render KPIs ─────────────────
   function renderStats() {
@@ -80,90 +84,103 @@
     const pnlPct = STARTING_CAPITAL > 0 ? (pnl / STARTING_CAPITAL) * 100 : 0;
     
     // Header Info
-    const navEquityEl = $('nav-equity');
-    if (navEquityEl) navEquityEl.textContent = fmt.usd(curEquity);
+    setText('nav-equity', fmt.usd(curEquity));
     
     // KPI 1: Equity
-    const equityValEl = $('kpi-equity');
-    if (equityValEl) equityValEl.textContent = fmt.usd(curEquity);
+    setText('kpi-equity', fmt.usd(curEquity));
     
-    const equityBadgeEl = $('kpi-equity-badge');
-    if (equityBadgeEl) {
-      equityBadgeEl.textContent = `${pnl >= 0 ? '+' : ''}${fmt.usd(pnl)} (${pnl >= 0 ? '+' : ''}${pnlPct.toFixed(2)}%)`;
-      equityBadgeEl.className = `kpi-badge ${pnl >= 0 ? (pnl === 0 ? 'neutral' : 'positive') : 'negative'}`;
-    }
-
-    // KPI 2: Win Rate
     const wins = D.cumulative_stats.wins ?? 0;
     const losses = D.cumulative_stats.losses ?? 0;
     const be = D.cumulative_stats.breakeven ?? 0;
     const totalTrades = wins + losses + be;
     const winRate = totalTrades > 0 ? (wins / totalTrades) * 100 : 0;
-    
-    // Sync memory
+
+    // Sync memory stats
     D.cumulative_stats.win_rate_pct = parseFloat(winRate.toFixed(2));
     D.cumulative_stats.total_trades = totalTrades;
 
-    const winRateEl = $('kpi-winrate');
-    if (winRateEl) winRateEl.textContent = totalTrades > 0 ? `${winRate.toFixed(1)}%` : '0.0%';
-    
+    const equitySubEl = $('kpi-equity-sub');
+    const equityBadgeEl = $('kpi-equity-badge');
+    if (totalTrades === 0) {
+      if (equitySubEl) equitySubEl.textContent = 'Starting balance';
+      if (equityBadgeEl) {
+        equityBadgeEl.textContent = '+$0.00 (0.00%)';
+        equityBadgeEl.className = 'kpi-badge neutral';
+      }
+    } else {
+      if (equitySubEl) equitySubEl.textContent = `${pnl >= 0 ? '+' : ''}${fmt.usd(pnl)} (${pnl >= 0 ? '+' : ''}${pnlPct.toFixed(2)}%)`;
+      if (equityBadgeEl) {
+        equityBadgeEl.textContent = pnl >= 0 ? 'PROFIT' : 'LOSS';
+        equityBadgeEl.className = `kpi-badge ${pnl >= 0 ? 'positive' : 'negative'}`;
+      }
+    }
+
+    // KPI 2: Win Rate (Grid breakdown)
     const winrateSubEl = $('kpi-winrate-sub');
     if (winrateSubEl) {
       winrateSubEl.textContent = totalTrades > 0 ? `${totalTrades} Closed Trade${totalTrades > 1 ? 's' : ''}` : 'No closed trades yet';
     }
-    
-    const winrateBadgeEl = $('kpi-winrate-badge');
-    if (winrateBadgeEl) {
-      winrateBadgeEl.textContent = `${wins}W / ${losses}L / ${be}BE`;
-      winrateBadgeEl.className = `kpi-badge ${winRate >= 50 ? 'positive' : (totalTrades === 0 ? 'neutral' : 'warning')}`;
-    }
+
+    setText('kpi-winrate-val', totalTrades > 0 ? `${winRate.toFixed(1)}%` : '0.0%');
+    setText('kpi-wins-val', wins);
+    setText('kpi-losses-val', losses);
+    setText('kpi-be-val', be);
+
+    // Apply grey text color if zero trades
+    const winsNumEl = $('kpi-wins-val');
+    if (winsNumEl) winsNumEl.className = wins > 0 ? 'kpi-stat-num text-win' : 'kpi-stat-num text-muted';
+    const lossNumEl = $('kpi-losses-val');
+    if (lossNumEl) lossNumEl.className = losses > 0 ? 'kpi-stat-num text-loss' : 'kpi-stat-num text-muted';
+    const beNumEl = $('kpi-be-val');
+    if (beNumEl) beNumEl.className = be > 0 ? 'kpi-stat-num text-muted' : 'kpi-stat-num text-muted';
 
     // KPI 3: Total R
     const totalR = D.cumulative_stats.total_r ?? 0;
     const avgR = totalTrades > 0 ? totalR / totalTrades : 0;
     D.cumulative_stats.avg_r_per_trade = parseFloat(avgR.toFixed(2));
 
-    const totalrEl = $('kpi-totalr');
-    if (totalrEl) totalrEl.textContent = fmt.r(totalR);
+    setText('kpi-totalr', totalTrades > 0 ? `${totalR >= 0 ? '+' : ''}${totalR.toFixed(2)}R` : '0.00R');
     
+    const totalrSubEl = $('kpi-totalr-sub');
+    if (totalrSubEl) {
+      totalrSubEl.textContent = totalTrades > 0 ? `Avg: ${totalR >= 0 ? '+' : ''}${avgR.toFixed(2)}R / trade` : 'Avg 0.00R / trade';
+    }
+
     const totalrBadgeEl = $('kpi-totalr-badge');
     if (totalrBadgeEl) {
-      totalrBadgeEl.textContent = `Avg: ${fmt.r(avgR)} / trade`;
-      totalrBadgeEl.className = `kpi-badge ${totalR >= 0 ? (totalR === 0 ? 'neutral' : 'positive') : 'negative'}`;
+      totalrBadgeEl.textContent = totalTrades > 0 ? `${totalR >= 0 ? '+' : ''}${totalR.toFixed(2)}R total` : '0.00R total';
+      totalrBadgeEl.className = `kpi-badge ${totalTrades === 0 ? 'neutral' : (totalR >= 0 ? 'positive' : 'negative')}`;
     }
 
     // KPI 4: Max Drawdown
     const maxDrawdown = D.cumulative_stats.max_drawdown_pct ?? 0;
     const ruleAdherence = D.cumulative_stats.rule_adherence_pct ?? 100;
     
-    const drawdownEl = $('kpi-drawdown');
-    if (drawdownEl) drawdownEl.textContent = fmt.pct(maxDrawdown);
+    setText('kpi-drawdown', totalTrades > 0 ? fmt.pct(maxDrawdown) : '0.00%');
     
+    const drawdownSubEl = $('kpi-drawdown-sub');
+    if (drawdownSubEl) {
+      drawdownSubEl.textContent = totalTrades > 0 ? 'Peak drawdown recorded' : 'No drawdown recorded';
+    }
+
     const drawdownBadgeEl = $('kpi-drawdown-badge');
     if (drawdownBadgeEl) {
       drawdownBadgeEl.textContent = `Adherence: ${ruleAdherence}%`;
-      drawdownBadgeEl.className = `kpi-badge ${ruleAdherence === 100 ? 'positive' : (ruleAdherence >= 80 ? 'warning' : 'negative')}`;
+      drawdownBadgeEl.className = `kpi-badge ${totalTrades === 0 ? 'neutral' : (ruleAdherence === 100 ? 'positive' : (ruleAdherence >= 80 ? 'warning' : 'negative'))}`;
     }
 
     // Sync Bottom stats section (Level 4 right)
-    const metaSessionsEl = $('meta-total-sessions');
-    if (metaSessionsEl) metaSessionsEl.textContent = D.cumulative_stats.total_sessions ?? 0;
-    
-    const metaTradesEl = $('meta-trades-count');
-    if (metaTradesEl) metaTradesEl.textContent = `${totalTrades} / ${D.cumulative_stats.total_no_trades ?? 0}`;
+    setText('meta-total-sessions', D.cumulative_stats.total_sessions ?? 0);
+    setText('meta-trades-count', `${totalTrades} / ${D.cumulative_stats.total_no_trades ?? 0}`);
     
     const metaAdherenceEl = $('meta-adherence');
     if (metaAdherenceEl) {
       metaAdherenceEl.textContent = `${ruleAdherence.toFixed(1)}%`;
-      metaAdherenceEl.className = `stat-meta-value mono ${ruleAdherence >= 90 ? 'text-win' : (ruleAdherence >= 70 ? 'text-warning' : 'text-loss')}`;
+      metaAdherenceEl.className = `stat-meta-value mono ${totalTrades === 0 ? '' : (ruleAdherence >= 90 ? 'text-win' : (ruleAdherence >= 70 ? 'text-warning' : 'text-loss'))}`;
     }
 
-    const metaAvgREl = $('meta-avg-r');
-    if (metaAvgREl) metaAvgREl.textContent = fmt.r(avgR);
-    
-    const metaMaxDDEl = $('meta-max-dd');
-    if (metaMaxDDEl) metaMaxDDEl.textContent = fmt.pct(maxDrawdown);
-    
+    setText('meta-avg-r', totalTrades > 0 ? `${avgR >= 0 ? '+' : ''}${avgR.toFixed(2)}R` : '0.00R');
+    setText('meta-max-dd', fmt.pct(maxDrawdown));
     setText('last-updated', fmt.date(D.meta.last_updated));
   }
 
@@ -213,7 +230,7 @@
     if (emptyEl) emptyEl.classList.add('hidden');
     canvas.classList.remove('hidden');
 
-    // Destroy existing chart to prevent hover gltiches
+    // Destroy existing chart
     if (mainChartInstance) {
       mainChartInstance.destroy();
     }
@@ -223,29 +240,29 @@
     
     let datasetLabel = '';
     let datasetData = [];
-    let strokeColor = '#5F58F6';
-    let fillColor = 'rgba(95, 88, 246, 0.05)';
+    let strokeColor = '#3b82f6';
+    let fillColor = 'rgba(59, 130, 246, 0.04)';
     let tooltipCallback = null;
 
     if (activeChartType === 'equity') {
       datasetLabel = 'Equity (USD)';
       datasetData = curve.map(p => p.equity);
       const isProfitable = datasetData[datasetData.length - 1] >= STARTING_CAPITAL;
-      strokeColor = isProfitable ? '#10b981' : '#ef4444';
-      fillColor = isProfitable ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)';
+      strokeColor = isProfitable ? '#10b981' : '#f43f5e';
+      fillColor = isProfitable ? 'rgba(16, 185, 129, 0.04)' : 'rgba(244, 63, 94, 0.04)';
       tooltipCallback = (ctx) => ` Balance: ${fmt.usd(ctx.parsed.y)}`;
     } else if (activeChartType === 'r_multiple') {
       datasetLabel = 'Cumulative R';
       datasetData = curve.map(p => p.r_multiple);
       const isPositive = datasetData[datasetData.length - 1] >= 0;
-      strokeColor = isPositive ? '#10b981' : '#ef4444';
-      fillColor = isPositive ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)';
+      strokeColor = isPositive ? '#10b981' : '#f43f5e';
+      fillColor = isPositive ? 'rgba(16, 185, 129, 0.04)' : 'rgba(244, 63, 94, 0.04)';
       tooltipCallback = (ctx) => ` R-Result: ${fmt.r(ctx.parsed.y)}`;
     } else if (activeChartType === 'drawdown') {
       datasetLabel = 'Drawdown (%)';
       datasetData = curve.map(p => p.drawdown);
       strokeColor = '#f59e0b';
-      fillColor = 'rgba(245, 158, 11, 0.05)';
+      fillColor = 'rgba(245, 158, 11, 0.04)';
       tooltipCallback = (ctx) => ` Drawdown: ${fmt.pct(ctx.parsed.y)}`;
     }
 
@@ -263,7 +280,7 @@
           tension: 0.35,
           pointRadius: 4,
           pointBackgroundColor: strokeColor,
-          pointBorderColor: '#0e1220',
+          pointBorderColor: '#0d1117',
           pointBorderWidth: 2,
           pointHoverRadius: 6,
           pointHoverBackgroundColor: strokeColor,
@@ -281,25 +298,25 @@
           legend: { display: false },
           tooltip: {
             backgroundColor: '#0d1117',
-            borderColor: 'rgba(255, 255, 255, 0.1)',
+            borderColor: 'rgba(255, 255, 255, 0.08)',
             borderWidth: 1,
             titleFont: { family: 'Geist', size: 11, weight: '700' },
             bodyFont: { family: 'Geist Mono', size: 12 },
-            cornerRadius: 8,
-            padding: 10,
+            cornerRadius: 6,
+            padding: 8,
             displayColors: false,
             callbacks: { label: tooltipCallback }
           }
         },
         scales: {
           x: {
-            grid: { color: 'rgba(255, 255, 255, 0.03)', drawTicks: false },
-            ticks: { color: '#626a84', font: { family: 'Plus Jakarta Sans', size: 10 } }
+            grid: { color: 'rgba(255, 255, 255, 0.02)', drawTicks: false },
+            ticks: { color: '#8b95a8', font: { family: 'Geist', size: 10 } }
           },
           y: {
-            grid: { color: 'rgba(255, 255, 255, 0.03)', drawTicks: false },
+            grid: { color: 'rgba(255, 255, 255, 0.02)', drawTicks: false },
             ticks: {
-              color: '#626a84',
+              color: '#8b95a8',
               font: { family: 'Geist Mono', size: 10 },
               callback: (v) => {
                 if (activeChartType === 'equity') return `$${v.toLocaleString()}`;
@@ -334,100 +351,132 @@
 
     if (!s || s.status === 'offline') {
       // Inactive layout
-      navPill.className = 'live-status-pill';
+      if (navPill) navPill.className = 'live-status-pill';
       if (navPillLbl) navPillLbl.textContent = 'OFFLINE';
       if (badgeStatus) {
-        badgeStatus.textContent = 'OFFLINE';
+        badgeStatus.textContent = 'Idle';
         badgeStatus.className = 'status-badge';
       }
       if (headerCta) {
-        headerCta.querySelector('span').textContent = 'Start Session';
+        headerCta.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3,1 11,6 3,11"/></svg><span>Start Session</span>`;
         headerCta.onclick = triggerSessionSim;
       }
-      inactiveBox.classList.remove('hidden');
-      activeBox.classList.add('hidden');
+      if (inactiveBox) inactiveBox.classList.remove('hidden');
+      if (activeBox) activeBox.classList.add('hidden');
       return;
     }
 
     // Active layouts
-    inactiveBox.classList.add('hidden');
-    activeBox.classList.remove('hidden');
+    if (inactiveBox) inactiveBox.classList.add('hidden');
+    if (activeBox) activeBox.classList.remove('hidden');
 
-    if (headerCta) {
-      headerCta.querySelector('span').textContent = 'Close Session';
-      headerCta.onclick = closeActiveSessionSim;
-    }
-
-    // Status mapping
+    // Status mapping & Toggles
     if (s.status === 'scanning') {
-      navPill.className = 'live-status-pill live-scanning';
+      if (navPill) navPill.className = 'live-status-pill live-scanning';
       if (navPillLbl) navPillLbl.textContent = 'SCANNING';
       if (badgeStatus) {
-        badgeStatus.textContent = 'SCANNING';
+        badgeStatus.textContent = 'Scanning';
         badgeStatus.className = 'status-badge scanning';
       }
       
-      $('active-symbol').textContent = s.symbol || 'BTCUSDT';
-      $('active-strategy').textContent = 'Analyzing Market Context...';
-      $('active-status').textContent = 'SCANNING OPPORTUNITIES';
-      $('active-status').className = 'param-val status-color-val text-warning';
-      $('active-direction').textContent = '—';
-      $('active-trade-params').classList.add('hidden');
+      setText('active-symbol', s.symbol || 'BTCUSDT');
+      setText('active-strategy', 'Scanning market setups...');
+      
+      const statVal = $('active-status');
+      if (statVal) {
+        statVal.textContent = 'SCANNING OPPORTUNITIES';
+        statVal.className = 'param-val status-color-val text-warning';
+      }
+      setText('active-direction', '—');
+      
+      const activeParams = $('active-trade-params');
+      if (activeParams) activeParams.classList.add('hidden');
+
+      // Bind Run Agent on Header if not analyzed
+      if (headerCta) {
+        if (!s.agent_reasoning) {
+          headerCta.innerHTML = `<svg class="ai-spark" width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0L7.5 4.5L12 6L7.5 7.5L6 12L4.5 7.5L0 6L4.5 4.5L6 0Z"/></svg><span>Run Agent</span>`;
+          headerCta.onclick = triggerAgentAnalysis;
+        } else {
+          headerCta.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg><span>Close Session</span>`;
+          headerCta.onclick = closeActiveSessionSim;
+        }
+      }
 
     } else if (s.status === 'in_trade') {
-      navPill.className = 'live-status-pill live-active';
+      if (navPill) navPill.className = 'live-status-pill live-active';
       if (navPillLbl) navPillLbl.textContent = 'IN TRADE';
       if (badgeStatus) {
-        badgeStatus.textContent = 'ACTIVE';
+        badgeStatus.textContent = 'Active';
         badgeStatus.className = 'status-badge active-trading';
       }
 
-      $('active-symbol').textContent = s.symbol || 'BTCUSDT';
-      $('active-strategy').textContent = s.strategy || 'EMA Trend (ema_trend_v1)';
+      setText('active-symbol', s.symbol || 'BTCUSDT');
       
-      $('active-status').textContent = 'IN POSITION';
-      $('active-status').className = 'param-val status-color-val text-win';
+      const strategyName = {
+        ema_trend_v1: 'EMA Trend Support (ema_trend_v1)',
+        rsi_reversal_v1: 'RSI Extremes (rsi_reversal_v1)',
+        breakout_retest_v1: 'S&R Breakout Retest (breakout_retest_v1)'
+      }[s.strategy] || s.strategy;
+
+      setText('active-strategy', strategyName || '—');
+      
+      const statVal = $('active-status');
+      if (statVal) {
+        statVal.textContent = 'IN POSITION';
+        statVal.className = 'param-val status-color-val text-win';
+      }
       
       const dirEl = $('active-direction');
-      dirEl.textContent = s.direction || 'LONG';
-      dirEl.className = `param-val direction-val mono ${s.direction === 'LONG' ? 'direction-long' : 'direction-short'}`;
+      if (dirEl) {
+        dirEl.textContent = s.direction || 'LONG';
+        dirEl.className = `param-val direction-val mono ${s.direction === 'LONG' ? 'direction-long' : 'direction-short'}`;
+      }
 
-      // Show parameter subgrid
-      $('active-trade-params').classList.remove('hidden');
-      $('active-entry').textContent = fmt.price(s.entry);
-      $('active-sl').textContent = fmt.price(s.sl);
-      $('active-tp').textContent = fmt.price(s.tp);
-      $('active-rr').textContent = s.rr ? `1:${s.rr}` : '—';
+      // Show parameter grid
+      const activeParams = $('active-trade-params');
+      if (activeParams) activeParams.classList.remove('hidden');
+      setText('active-entry', fmt.price(s.entry));
+      setText('active-sl', fmt.price(s.sl));
+      setText('active-tp', fmt.price(s.tp));
+      setText('active-rr', s.rr ? `1:${s.rr}` : '—');
+
+      if (headerCta) {
+        headerCta.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg><span>Close Session</span>`;
+        headerCta.onclick = closeActiveSessionSim;
+      }
     }
 
-    // AI Reasoning panel sub-render
+    // AI Reasoning sub-panel
     const aiIdle = $('ai-reasoning-idle');
     const aiLoading = $('ai-reasoning-loading');
     const aiActive = $('ai-reasoning-active');
 
     if (s.agent_reasoning) {
-      aiIdle.classList.add('hidden');
-      aiLoading.classList.add('hidden');
-      aiActive.classList.remove('hidden');
+      if (aiIdle) aiIdle.classList.add('hidden');
+      if (aiLoading) aiLoading.classList.add('hidden');
+      if (aiActive) aiActive.classList.remove('hidden');
 
-      $('ai-context').textContent = s.agent_reasoning.context || '—';
-      $('ai-setup').textContent = s.agent_reasoning.setup || '—';
+      setText('ai-context', s.agent_reasoning.context || '—');
+      setText('ai-setup', s.agent_reasoning.setup || '—');
       
       const riskEl = $('ai-risk');
-      if (s.agent_reasoning.risk) {
-        riskEl.textContent = s.agent_reasoning.risk;
-        riskEl.classList.remove('hidden');
-      } else {
-        riskEl.classList.add('hidden');
+      if (riskEl) {
+        if (s.agent_reasoning.risk) {
+          riskEl.textContent = s.agent_reasoning.risk;
+          riskEl.classList.remove('hidden');
+        } else {
+          riskEl.classList.add('hidden');
+        }
       }
     } else {
-      aiIdle.classList.remove('hidden');
-      aiLoading.classList.add('hidden');
-      aiActive.classList.add('hidden');
+      if (aiIdle) aiIdle.classList.remove('hidden');
+      if (aiLoading) aiLoading.classList.add('hidden');
+      if (aiActive) aiActive.classList.add('hidden');
     }
   }
 
-  // ── 4. Strategy metrics list ──────────────────────────────────
+  // ── 4. Strategy performance list ──────────────────────────────
   function renderStrategyPerformance() {
     const container = $('strategy-list-container');
     const emptyEl = $('strategies-empty');
@@ -436,52 +485,79 @@
     const ss = D.strategy_stats;
     const strategies = [
       { id: 'ema_trend_v1', name: 'EMA Trend Support' },
-      { id: 'rsi_reversal_v1', name: 'RSI Extremes Overbought/Oversold' },
-      { id: 'breakout_retest_v1', name: 'Support & Resistance Breakout' }
+      { id: 'rsi_reversal_v1', name: 'RSI Extremes' },
+      { id: 'breakout_retest_v1', name: 'S&R Breakout Retest' },
+      { id: 'no_trade', name: 'No-Trade Discipline' }
     ];
 
     let hasData = false;
-    let maxR = 0.1; // Baseline divider to prevent divide by zero
+    let maxR = 0.1; // Divider baseline
     strategies.forEach(s => {
-      const data = ss[s.id];
-      if (data && data.trades > 0) {
-        hasData = true;
-        if (Math.abs(data.total_r) > maxR) {
-          maxR = Math.abs(data.total_r);
+      if (s.id === 'no_trade') {
+        const totalNoTrades = D.cumulative_stats.total_no_trades ?? 0;
+        if (totalNoTrades > 0) hasData = true;
+      } else {
+        const data = ss[s.id];
+        if (data && data.trades > 0) {
+          hasData = true;
+          if (Math.abs(data.total_r) > maxR) {
+            maxR = Math.abs(data.total_r);
+          }
         }
       }
     });
 
     if (!hasData) {
       container.innerHTML = '';
-      emptyEl.classList.remove('hidden');
+      if (emptyEl) emptyEl.classList.remove('hidden');
       return;
     }
 
-    emptyEl.classList.add('hidden');
+    if (emptyEl) emptyEl.classList.add('hidden');
 
     container.innerHTML = strategies.map(s => {
-      const data = ss[s.id] || { trades: 0, wins: 0, losses: 0, total_r: 0 };
-      const winRate = data.trades > 0 ? Math.round((data.wins / data.trades) * 100) : 0;
-      
-      // Calculate relative percentage width for progress bar
-      const widthPct = maxR > 0 ? Math.min(100, Math.round((Math.abs(data.total_r) / maxR) * 100)) : 0;
-      const isRPositive = data.total_r >= 0;
+      let tradesCount = 0;
+      let rVal = '0.00R';
+      let widthPct = 0;
+      let isRPositive = true;
+      let isDiscipline = s.id === 'no_trade';
+      let rClass = 'neutral';
+
+      if (isDiscipline) {
+        tradesCount = D.cumulative_stats.total_no_trades ?? 0;
+        rVal = '—';
+        widthPct = D.cumulative_stats.rule_adherence_pct ?? 100;
+        rClass = 'neutral';
+      } else {
+        const data = ss[s.id] || { trades: 0, wins: 0, losses: 0, total_r: 0 };
+        tradesCount = data.trades;
+        isRPositive = data.total_r >= 0;
+        rVal = `${isRPositive ? '+' : ''}${data.total_r.toFixed(2)}R`;
+        rClass = data.trades === 0 ? 'neutral' : (isRPositive ? 'positive' : 'negative');
+        const winRate = data.trades > 0 ? Math.round((data.wins / data.trades) * 100) : 0;
+        widthPct = maxR > 0 ? Math.min(100, Math.round((Math.abs(data.total_r) / maxR) * 100)) : 0;
+      }
 
       return `
-        <div class="strategy-item">
+        <div class="strategy-item ${isDiscipline ? 'strategy-item--discipline' : ''}">
           <div class="strategy-info-row">
             <div class="strat-name-block">
               <span class="strat-display-name">${s.name}</span>
-              <span class="strat-code-name">${s.id}</span>
+              <span class="strat-code-name">${isDiscipline ? 'discipline_v1' : s.id}</span>
             </div>
-            <div class="strat-stats-block">
-              <span class="strat-trades-count">${data.trades} trade${data.trades !== 1 ? 's' : ''} (${winRate}% win)</span>
-              <span class="strat-r-total ${isRPositive ? 'positive' : 'negative'}">${isRPositive ? '+' : ''}${data.total_r.toFixed(2)}R</span>
+            <div class="strat-metrics">
+              <div class="strat-metric-box">
+                <span class="strat-metric-val">${tradesCount}</span>
+                <span class="strat-metric-lbl">${isDiscipline ? 'Count' : 'Trades'}</span>
+              </div>
+              <div class="strat-metric-box">
+                <span class="strat-metric-val ${rClass}">${rVal}</span>
+                <span class="strat-metric-lbl">${isDiscipline ? 'Result' : 'R-PnL'}</span>
+              </div>
             </div>
           </div>
           <div class="progress-bar-container">
-            <div class="progress-bar-fill ${isRPositive ? 'win' : ''}" style="width: ${data.trades > 0 ? widthPct : 0}%"></div>
+            <div class="progress-bar-fill ${isDiscipline ? 'win' : (isRPositive ? 'win' : '')}" style="width: ${tradesCount > 0 || isDiscipline ? widthPct : 0}%"></div>
           </div>
         </div>
       `;
@@ -500,6 +576,7 @@
   window.filterAndRenderTable = function () {
     const tbody = $('journal-tbody');
     const emptyEl = $('table-empty');
+    const tableEl = $('journal-table-el');
     if (!tbody) return;
 
     const query = ($('journal-search')?.value || '').toLowerCase().trim();
@@ -550,11 +627,13 @@
     // Render Table Rows
     if (filtered.length === 0) {
       tbody.innerHTML = '';
-      emptyEl.classList.remove('hidden');
+      if (emptyEl) emptyEl.classList.remove('hidden');
+      if (tableEl) tableEl.classList.add('hidden');
       return;
     }
 
-    emptyEl.classList.add('hidden');
+    if (emptyEl) emptyEl.classList.add('hidden');
+    if (tableEl) tableEl.classList.remove('hidden');
 
     tbody.innerHTML = filtered.map(t => {
       const resultBadge = {
@@ -562,10 +641,15 @@
         LOSS: '<span class="badge badge-loss">LOSS</span>',
         BREAKEVEN: '<span class="badge badge-be">BE</span>',
         'NO-TRADE': '<span class="badge badge-notrade">NO-TRADE</span>',
-        OPEN: '<span class="badge badge-be" style="color:var(--accent-hover);border-color:var(--border-active)">OPEN</span>'
+        OPEN: '<span class="badge badge-be" style="color:var(--blue-hover);border-color:var(--border-hi)">OPEN</span>'
       }[t.status] || `<span class="badge badge-be">${t.status}</span>`;
 
-      const dirClass = t.direction === 'LONG' ? 'direction-long' : t.direction === 'SHORT' ? 'direction-short' : '';
+      const dirBadge = t.direction === 'LONG' 
+        ? '<span class="badge badge-long">LONG</span>' 
+        : t.direction === 'SHORT' 
+          ? '<span class="badge badge-short">SHORT</span>' 
+          : '<span class="badge badge-be">—</span>';
+
       const pnlClass = t.pnl_usd >= 0 ? 'pnl-positive' : 'pnl-negative';
       const rClass = (t.r_result ?? 0) >= 0 ? 'pnl-positive' : 'pnl-negative';
 
@@ -580,12 +664,12 @@
         <tr>
           <td class="mono" style="color:var(--text-muted); font-size:11px">${fmt.date(t.date || t.timestamp_entry)}</td>
           <td class="mono" style="font-weight:700">${t.symbol ?? '—'}</td>
-          <td><span class="${dirClass}">${t.direction}</span></td>
+          <td>${dirBadge}</td>
           <td style="color:var(--text-secondary); font-size:11px">${t.strategy}</td>
           <td class="text-right mono">${entryPrice}</td>
           <td class="text-right mono text-loss" style="font-size:11px">${slPrice}</td>
           <td class="text-right mono text-win" style="font-size:11px">${tpPrice}</td>
-          <td class="text-center mono">${rrRatio}</td>
+          <td class="text-right mono">${rrRatio}</td>
           <td class="text-center">${resultBadge}</td>
           <td class="text-right ${pnlClass}">${pnlUSD}</td>
           <td class="text-right ${rClass}">${rVal}</td>
@@ -603,11 +687,11 @@
     const reviews = D.daily_reviews ?? [];
     if (reviews.length === 0) {
       container.innerHTML = '';
-      emptyEl.classList.remove('hidden');
+      if (emptyEl) emptyEl.classList.remove('hidden');
       return;
     }
 
-    emptyEl.classList.add('hidden');
+    if (emptyEl) emptyEl.classList.add('hidden');
 
     container.innerHTML = reviews.map(r => {
       const isAllowed = r.permission_for_next_day === 'trade';
@@ -630,13 +714,13 @@
             </div>
             <div class="review-mini-cell">
               <span class="review-mini-label">Net R</span>
-              <span class="review-mini-val text-win" style="color:${(r.net_r ?? 0) >= 0 ? 'var(--color-win)' : 'var(--color-loss)'}">
+              <span class="review-mini-val text-win" style="color:${(r.net_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)'}">
                 ${(r.net_r ?? 0) >= 0 ? '+' : ''}${(r.net_r ?? 0).toFixed(2)}R
               </span>
             </div>
             <div class="review-mini-cell">
               <span class="review-mini-label">PnL</span>
-              <span class="review-mini-val" style="color:${(r.net_pnl_usd ?? 0) >= 0 ? 'var(--color-win)' : 'var(--color-loss)'}">
+              <span class="review-mini-val" style="color:${(r.net_pnl_usd ?? 0) >= 0 ? 'var(--green)' : 'var(--red)'}">
                 ${(r.net_pnl_usd ?? 0) >= 0 ? '+' : ''}${fmt.usd(r.net_pnl_usd ?? 0)}
               </span>
             </div>
@@ -657,14 +741,14 @@
     const patterns = D.patterns ?? [];
     if (patterns.length === 0) {
       grid.classList.add('hidden');
-      emptyEl.classList.remove('hidden');
+      if (emptyEl) emptyEl.classList.remove('hidden');
       return;
     }
 
     grid.classList.remove('hidden');
-    emptyEl.classList.add('hidden');
+    if (emptyEl) emptyEl.classList.add('hidden');
 
-    grid.innerHTML = patterns.map((p, idx) => {
+    grid.innerHTML = patterns.map(p => {
       const statusClass = {
         hypothesis: 'pat-hypothesis',
         probable: 'pat-probable',
@@ -698,7 +782,6 @@
       return;
     }
 
-    // Set status to Scanning
     D.active_session = {
       status: 'scanning',
       symbol: 'BTCUSDT',
@@ -709,13 +792,12 @@
     D.cumulative_stats.total_sessions += 1;
     D.meta.last_updated = new Date().toISOString();
     
-    // Animate transition
     renderLiveSession();
     renderStats();
 
-    // Auto-trigger Agent Reasoning after 1.5 seconds of "scanning"
+    // Auto-trigger Agent Reasoning after 1.2 seconds of scanning
     setTimeout(() => {
-      if (D.active_session && D.active_session.status === 'scanning') {
+      if (D.active_session && D.active_session.status === 'scanning' && !D.active_session.agent_reasoning) {
         triggerAgentAnalysis();
       }
     }, 1200);
@@ -724,7 +806,6 @@
   window.closeActiveSessionSim = function () {
     if (!D.active_session) return;
 
-    // If active session has a trade, settle it randomly
     if (D.active_session.status === 'in_trade') {
       settleActiveTradeSim();
     } else {
@@ -739,7 +820,6 @@
   // Action: Trigger Agent Analysis (Run Agent)
   window.triggerAgentAnalysis = function () {
     if (!D.active_session) {
-      // Start session first if offline
       triggerSessionSim();
       return;
     }
@@ -748,9 +828,9 @@
     const aiLoading = $('ai-reasoning-loading');
     const aiActive = $('ai-reasoning-active');
 
-    aiIdle.classList.add('hidden');
-    aiLoading.classList.remove('hidden');
-    aiActive.classList.add('hidden');
+    if (aiIdle) aiIdle.classList.add('hidden');
+    if (aiLoading) aiLoading.classList.remove('hidden');
+    if (aiActive) aiActive.classList.add('hidden');
 
     // Simulate AI loading delay
     setTimeout(() => {
@@ -765,9 +845,9 @@
           tp: 70600,
           rr: 3.0,
           reasoning: {
-            context: 'Xu hướng tăng H4 bền vững. Đường EMA 21 & EMA 50 xếp chồng song song hướng lên trên. Chỉ số ADX = 28.4 biểu thị xu hướng mạnh mẽ.',
-            setup: 'Giá hồi quy kỹ thuật (retest) thành công về dải hỗ trợ động EMA 21. Xuất hiện nến rút chân Bullish Hammer ở H4 kèm vol mua đột biến.',
-            risk: 'Cần chú ý tin tức CPI Mỹ được công bố tối nay. Tránh giao dịch đòn bẩy quá cao.'
+            context: 'Solid H4 bullish structure. EMA 21 & EMA 50 stacked and sloping upwards. ADX = 28.4 indicates high trend strength.',
+            setup: 'Price retested dynamic support zone of EMA 21. Bullish hammer candle formed on H4 with elevated volume.',
+            risk: 'Upcoming US CPI news tonight. Keep leverage conservative and monitor short-term spikes.'
           }
         },
         {
@@ -778,9 +858,9 @@
           tp: 67700,
           rr: 3.0,
           reasoning: {
-            context: 'Giá tiệm cận vùng kháng cự cứng ATH chu kỳ trước. RSI khung H1 đạt cực đại 78.5 (Overbought) kết hợp phân kỳ âm rõ rệt.',
-            setup: 'Nến đảo chiều Bearish Engulfing xuất hiện ở biên trên kênh giá song song. MACD giao cắt hướng xuống.',
-            risk: 'Đi ngược xu hướng chính H4. Tuyệt đối tuân thủ dừng lỗ 1% tài khoản.'
+            context: 'Price approaching major historical resistance. H1 RSI reached 78.5 (overbought) with clear bearish divergence.',
+            setup: 'Bearish engulfing candle formed at the upper bound of the ascending channel. MACD bearish crossover.',
+            risk: 'Counter-trend trade. Strict 1% account risk limit must be enforced.'
           }
         },
         {
@@ -791,9 +871,9 @@
           tp: 70900,
           rr: 3.0,
           reasoning: {
-            context: 'Giá phá vỡ thành công mô hình tam giác tích lũy (Symmetrical Triangle) kéo dài 5 ngày trên khung đồ thị H1.',
-            setup: 'Đang hình thành nến Pinbar retest lại cạnh trên của tam giác đã phá vỡ (vùng hỗ trợ mới). Vol bán giảm dần.',
-            risk: 'Nếu đóng nến dưới 68,300 USD thì setup breakout này bị thất bại (Fakeout).'
+            context: 'Clean breakout of a 5-day symmetrical triangle pattern on the H1 timeframe.',
+            setup: 'Pinbar candle retesting the upper boundary of the triangle (new dynamic support). Declining sell volume.',
+            risk: 'Failure to close above $68,300 invalidates the breakout setup (Fakeout risk).'
           }
         }
       ][Math.floor(Math.random() * 3)];
@@ -820,8 +900,14 @@
     if (!D.active_session || D.active_session.status !== 'in_trade') return;
 
     const s = D.active_session;
-    const isWin = Math.random() > 0.4; // 60% win rate for simulation fun!
     
+    // Simulate discipline checks
+    const violatesRules = Math.random() < 0.15; // 15% chance of rule violation
+    if (violatesRules) {
+      D.cumulative_stats.rule_violations += 1;
+    }
+    
+    const isWin = Math.random() > 0.4; // 60% win rate
     let result = 'LOSS';
     let pnl = -100; // $100 loss (1% risk on $10k capital)
     let r_res = -1.0;
@@ -851,10 +937,9 @@
       r_result: r_res
     };
 
-    // Update arrays
     D.trades.push(newTrade);
     
-    // Settle stats
+    // Update stats
     if (result === 'WIN') D.cumulative_stats.wins += 1;
     else if (result === 'LOSS') D.cumulative_stats.losses += 1;
     else D.cumulative_stats.breakeven += 1;
@@ -862,7 +947,7 @@
     D.cumulative_stats.total_r = parseFloat((D.cumulative_stats.total_r + r_res).toFixed(2));
     D.cumulative_stats.total_pnl_usd = parseFloat((D.cumulative_stats.total_pnl_usd + pnl).toFixed(2));
     
-    // Settle strategy metrics
+    // Update strategy metrics
     if (!D.strategy_stats[s.strategy]) {
       D.strategy_stats[s.strategy] = { trades: 0, wins: 0, losses: 0, total_r: 0 };
     }
@@ -871,6 +956,10 @@
     if (result === 'WIN') stratMetric.wins += 1;
     else if (result === 'LOSS') stratMetric.losses += 1;
     stratMetric.total_r = parseFloat((stratMetric.total_r + r_res).toFixed(2));
+
+    // Calculate Adherence
+    const totalCount = D.trades.length;
+    D.cumulative_stats.rule_adherence_pct = Math.max(0, Math.round(((totalCount - D.cumulative_stats.rule_violations) / totalCount) * 100));
 
     // Reset active session
     D.active_session = null;
@@ -887,8 +976,9 @@
 
   // Action: Add Simulated Trade (Form Submit)
   window.openAddTradeModal = function () {
-    $('add-trade-modal').classList.remove('hidden');
-    // Pre-populate values for convenience
+    const modal = $('add-trade-modal');
+    if (modal) modal.classList.remove('hidden');
+    
     const entry = 68500;
     const direction = $('trade-direction').value;
     
@@ -904,7 +994,8 @@
   };
 
   window.closeAddTradeModal = function () {
-    $('add-trade-modal').classList.add('hidden');
+    const modal = $('add-trade-modal');
+    if (modal) modal.classList.add('hidden');
   };
 
   window.toggleFormPnlInputs = function () {
@@ -954,7 +1045,6 @@
       r_result: rresult
     };
 
-    // Push and calculate
     D.trades.push(newTrade);
 
     if (result === 'WIN') D.cumulative_stats.wins += 1;
@@ -988,22 +1078,20 @@
   window.triggerReviewSim = function () {
     const list = [
       {
-        lesson: 'Tuân thủ kế hoạch giao dịch hoàn hảo. Giữ bình tĩnh khi giá tiệm cận Stop Loss và kiên quyết không dịch SL.',
+        lesson: 'Perfect adherence to the trading plan. Stayed calm when price approached Stop Loss and did not move the SL.',
         permission: 'trade'
       },
       {
-        lesson: 'Tránh vào lệnh khi thị trường biến động giật mạnh trước tin tức FOMC. Nên đứng ngoài quan sát.',
+        lesson: 'Avoided trading during high volatility leading up to the FOMC news. Good decision to sit on hands.',
         permission: 'trade'
       },
       {
-        lesson: 'Lỗi kỷ luật: Fomo vào lệnh khi giá đã chạy quá xa điểm Entry. Phạt ngưng giao dịch 1 phiên kế tiếp.',
+        lesson: 'Discipline error: FOMO entry when price had already run too far from the Entry. Suspended trading for the next session.',
         permission: 'review'
       }
     ];
 
     const pick = list[Math.floor(Math.random() * list.length)];
-    const wins = D.cumulative_stats.wins;
-    const losses = D.cumulative_stats.losses;
 
     const newReview = {
       date: new Date().toISOString(),
@@ -1026,21 +1114,21 @@
     const patterns = [
       {
         title: 'Bullish Flag Breakout',
-        description: 'Mô hình cờ tăng xuất hiện sau một xu hướng tăng mạnh. Phá vỡ cạnh trên cờ kèm theo khối lượng giao dịch đột biến xác nhận tiếp diễn xu hướng.',
+        description: 'Bullish flag pattern forming after a strong uptrend. Retest and breakout of the upper boundary with high volume confirms trend continuation.',
         status: 'confirmed',
         observed: 4,
         win_rate: 75
       },
       {
         title: 'Double Bottom Support',
-        description: 'Mô hình 2 đáy hình thành tại vùng hỗ trợ cứng khung H4. RSI phân kỳ dương tạo tín hiệu mua đảo chiều mạnh mẽ.',
+        description: 'Double bottom pattern forming at H4 key support. Bullish RSI divergence provides strong reversal signals.',
         status: 'probable',
         observed: 2,
         win_rate: 50
       },
       {
         title: 'Head and Shoulders Peak',
-        description: 'Mô hình Vai Đầu Vai đảo chiều giảm giá tại đỉnh. Phá vỡ đường viền cổ (Neckline) kích hoạt lực bán tháo kỹ thuật.',
+        description: 'Head and shoulders pattern indicating bearish trend reversal at structural highs. Breakdown below neckline triggers technical selloff.',
         status: 'hypothesis',
         observed: 1,
         win_rate: 0
@@ -1049,7 +1137,7 @@
 
     const pick = patterns[Math.floor(Math.random() * patterns.length)];
     
-    // Check if title already exists in pattern library, increment observed
+    // Check if title already exists, increment observed
     const existing = D.patterns.find(p => p.title === pick.title);
     if (existing) {
       existing.observed += 1;
@@ -1067,9 +1155,44 @@
     renderPatterns();
   };
 
+  // Action: Add Simulated No-Trade discipline log
+  window.triggerNoTradeSim = function () {
+    const disciplineScenarios = [
+      {
+        strategy: 'Discipline Check',
+        reason: 'Market context highly volatile pre-FOMC. Sticking to plan to stay flat.',
+      },
+      {
+        strategy: 'Setup Invalidated',
+        reason: 'EMA Retest did not produce a bullish trigger candle. Sticking to rules.',
+      },
+      {
+        strategy: 'Drawdown Circuit Breaker',
+        reason: 'Daily max loss limits reached. Disabling trading session.',
+      }
+    ];
+
+    const pick = disciplineScenarios[Math.floor(Math.random() * disciplineScenarios.length)];
+    
+    const newNoTrade = {
+      date: new Date().toISOString(),
+      strategy: pick.strategy,
+      reason: pick.reason
+    };
+
+    if (!D.no_trades) D.no_trades = [];
+    D.no_trades.push(newNoTrade);
+
+    D.cumulative_stats.total_no_trades = (D.cumulative_stats.total_no_trades ?? 0) + 1;
+    D.meta.last_updated = new Date().toISOString();
+
+    renderStats();
+    renderStrategyPerformance();
+    filterAndRenderTable();
+  };
+
   // ── 8. Initial Initialization on Load ─────────────────────────
   function init() {
-    // Attach listener to update SL/TP values based on result inside form
     const directionEl = $('trade-direction');
     if (directionEl) directionEl.onchange = toggleFormPnlInputs;
     
@@ -1085,7 +1208,13 @@
     const tpInput = $('trade-tp');
     if (tpInput) tpInput.oninput = toggleFormPnlInputs;
 
-    // Settle starting charts and tables
+    // Attach form submit
+    const formEl = $('add-trade-form');
+    if (formEl) {
+      formEl.onsubmit = handleFormSubmit;
+    }
+
+    // Set starting states
     rebuildEquityCurve();
     renderStats();
     renderPerformanceChart();
@@ -1104,7 +1233,7 @@
           nav.querySelector('.nav-shell').style.borderRadius = '0';
         } else {
           nav.style.top = '14px';
-          nav.querySelector('.nav-shell').style.borderRadius = '18px';
+          nav.querySelector('.nav-shell').style.borderRadius = '16px';
         }
       }, { passive: true });
     }
