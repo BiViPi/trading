@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   Trading Simulation Dashboard — JavaScript Overhaul (v2.1)
+   Trading Simulation Dashboard — JavaScript Overhaul (v2.2)
    Handles Chart.js rendering, search/filter/sort logic,
    and client-side Interactive Simulation Mode.
    ═══════════════════════════════════════════════════════════════ */
@@ -12,7 +12,7 @@
   if (!D) {
     console.warn('[Dashboard] window.TRADING_DATA not found. Initializing empty fallback.');
     D = {
-      meta: { last_updated: new Date().toISOString(), schema_version: "1.1" },
+      meta: { last_updated: new Date().toISOString(), schema_version: "1.2" },
       account: { equity_start: 10000, equity_current: 10000, currency: "USD", mode: "SIMULATED_PAPER_TRADING" },
       cumulative_stats: {
         total_sessions: 0, total_trades: 0, total_no_trades: 0,
@@ -41,6 +41,363 @@
     rebuildEquityCurve();
   }
 
+  // ── i18n Translation Dictionary ────────────────────────────────
+  const TRANSLATIONS = {
+    en: {
+      // Nav
+      nav_title: "Trading Sim",
+      offline: "OFFLINE",
+      scanning: "SCANNING",
+      in_trade: "IN TRADE",
+      start_session: "Start Session",
+      run_agent: "Run Agent",
+      close_session: "Close Session",
+      idle: "Idle",
+      active: "Active",
+
+      // KPI Cards
+      equity: "EQUITY",
+      starting_balance: "Starting balance",
+      net_profit: "net profit",
+      net_loss: "net loss",
+      initial: "INITIAL",
+      profit_badge: "PROFIT",
+      loss_badge: "LOSS",
+
+      win_rate: "WIN RATE",
+      no_trades_yet: "No closed trades yet",
+      closed_trade: "Closed Trade",
+      closed_trades: "Closed Trades",
+      wins_lbl: "Wins",
+      losses_lbl: "Losses",
+      be_lbl: "BE",
+
+      total_r: "TOTAL R",
+      avg_r_trade: "Avg: {r} / trade",
+      total_r_badge: "{r} total",
+
+      max_drawdown: "MAX DRAWDOWN",
+      no_dd_recorded: "No drawdown recorded",
+      peak_dd_recorded: "Peak drawdown recorded",
+      adherence: "Adherence",
+
+      // Performance Curve
+      perf_curve: "PERFORMANCE CURVE",
+      perf_chart_title: "Performance Chart",
+      no_equity_data: "No equity data yet",
+      perf_empty_desc: "Start a session or add your first trade to generate the equity curve.",
+      add_trade: "Add Trade",
+
+      // Live Monitor
+      live_monitor: "LIVE MONITOR",
+      live_session: "Live Session",
+      no_active_session: "No active session",
+      live_empty_desc: "Start a paper session to let the agent scan setups and track trade levels.",
+      strategy: "Strategy",
+      status: "Status",
+      direction: "Direction",
+      scanning_opportunities: "SCANNING OPPORTUNITIES",
+      in_position: "IN POSITION",
+      scanning_setups: "Scanning setups...",
+      market_context_lbl: "Market Context",
+      setup_quality_lbl: "Setup Quality",
+      risk_notes_lbl: "Risk Notes",
+
+      // Journal Log
+      journal_log: "JOURNAL LOG",
+      trade_journal: "Trade Journal",
+      search_placeholder: "Search symbol, strategy...",
+      all: "All",
+      wins_filter: "Wins",
+      losses_filter: "Losses",
+      be_filter: "BE",
+      no_trade_filter: "No-Trade",
+      sort_newest: "Newest",
+      sort_oldest: "Oldest",
+      sort_highest_pnl: "Highest PnL",
+      sort_lowest_pnl: "Lowest PnL",
+      sort_highest_r: "Highest R",
+      table_date: "Date",
+      table_symbol: "Symbol",
+      table_dir: "Dir",
+      table_strategy: "Strategy",
+      table_entry: "Entry",
+      table_sl: "SL",
+      table_tp: "TP",
+      table_rr: "R:R",
+      table_result: "Result",
+      table_pnl: "PnL",
+      table_r: "R",
+      no_trades_logged_yet: "No trades logged yet",
+      journal_empty_desc: "Completed sessions and manual trades will appear here.",
+
+      // Metrics
+      metrics: "METRICS",
+      strat_discipline: "Strategies & Discipline",
+      strat_perf_title: "Strategy Performance",
+      no_strat_metrics: "No strategy metrics recorded yet.",
+      discipline_risk_title: "Discipline & Risk Metrics",
+      risk_rule_active: "Risk Rule: Active",
+      sessions_completed: "Sessions Completed",
+      trades_notrades: "Total Trades / No-Trades",
+      discipline_adherence: "Discipline Adherence",
+      avg_r_per_trade: "Average R per Trade",
+      max_drawdown_stat: "Max Drawdown",
+
+      // Reviews
+      reviews: "REVIEWS",
+      daily_reviews: "Daily Reviews",
+      new_review: "+ Start Review",
+      no_reviews_title: "No reviews yet",
+      reviews_empty_desc: "Complete a session to generate your first daily review. Agent will checklist:",
+      chk_followed_plan: "Followed plan?",
+      chk_managed_risk: "Managed risk? (Max 1% capital per trade)",
+      chk_lessons_learned: "Lessons learned and patterns noted?",
+      trade_permitted: "TRADE PERMITTED",
+      review_shutdown: "REVIEW & SHUTDOWN",
+      start_review_btn: "Start Review",
+
+      // Learnings / Patterns
+      learnings: "LEARNINGS",
+      pattern_library: "Pattern Library",
+      add_pattern: "+ Add Pattern",
+      no_patterns_title: "No patterns saved yet",
+      patterns_empty_desc: "Patterns will be created from repeated setups and weekly reviews.",
+      ghost_observed: "Ghost pattern",
+      observed_lbl: "Observed",
+      win_rate_lbl: "Win Rate",
+      add_pattern_btn: "Add Pattern",
+      ghost_breakout_title: "Breakout Model",
+      ghost_breakout_desc: "Horizontal range breakout accompanied by elevated confirmation volume...",
+      ghost_pullback_title: "Pullback Retest",
+      ghost_pullback_desc: "Entry at key prior resistance flipped support level after breakout...",
+      ghost_observed_meta: "Ghost pattern · 0 trades",
+
+      // Footer
+      footer_name: "Trading Simulation Dashboard",
+      footer_mode: "SIMULATED PAPER TRADING ONLY",
+      last_sync: "Last sync",
+      capital: "Capital",
+      not_advice: "Not financial advice",
+
+      // Modal
+      modal_title: "Log Simulated Trade",
+      cancel: "Cancel",
+      add_trade_btn: "Add Trade",
+      entry_price: "Entry Price",
+      stop_loss: "Stop Loss",
+      take_profit: "Take Profit",
+      pnl_usd: "PnL (USD)",
+      r_result: "R-Result"
+    },
+    vi: {
+      // Nav
+      nav_title: "Mô phỏng giao dịch",
+      offline: "NGOẠI TUYẾN",
+      scanning: "ĐANG QUÉT",
+      in_trade: "ĐANG GIAO DỊCH",
+      start_session: "Bắt đầu phiên",
+      run_agent: "Chạy Agent",
+      close_session: "Đóng phiên",
+      idle: "Ngoại tuyến",
+      active: "Hoạt động",
+
+      // KPI Cards
+      equity: "VỐN TÀI KHOẢN",
+      starting_balance: "Số dư ban đầu",
+      net_profit: "lợi nhuận ròng",
+      net_loss: "thua lỗ ròng",
+      initial: "BAN ĐẦU",
+      profit_badge: "LỢI NHUẬN",
+      loss_badge: "THUA LỖ",
+
+      win_rate: "TỶ LỆ THẮNG",
+      no_trades_yet: "Chưa có giao dịch",
+      closed_trade: "Lệnh đóng",
+      closed_trades: "Lệnh đóng",
+      wins_lbl: "Thắng",
+      losses_lbl: "Thua",
+      be_lbl: "Hòa",
+
+      total_r: "TỔNG R",
+      avg_r_trade: "Tb: {r} / lệnh",
+      total_r_badge: "Tổng {r}",
+
+      max_drawdown: "DRAWDOWN TỐI ĐA",
+      no_dd_recorded: "Chưa có sụt giảm",
+      peak_dd_recorded: "Mức sụt giảm tối đa",
+      adherence: "Tuân thủ",
+
+      // Performance Curve
+      perf_curve: "ĐƯỜNG HIỆU SUẤT",
+      perf_chart_title: "Biểu đồ hiệu suất",
+      no_equity_data: "Chưa có dữ liệu hiệu suất",
+      perf_empty_desc: "Bắt đầu phiên hoặc thêm giao dịch đầu tiên để tạo đường hiệu suất.",
+      add_trade: "Thêm giao dịch",
+
+      // Live Monitor
+      live_monitor: "THEO DÕI PHIÊN",
+      live_session: "Phiên giao dịch",
+      no_active_session: "Chưa có phiên đang chạy",
+      live_empty_desc: "Khởi chạy một phiên paper trading để agent quét setup và theo dõi các mức giá.",
+      strategy: "Chiến lược",
+      status: "Trạng thái",
+      direction: "Xu hướng",
+      scanning_opportunities: "ĐANG TÌM KIẾM CƠ HỘI",
+      in_position: "ĐANG CÓ VỊ THẾ",
+      scanning_setups: "Đang quét các thiết lập...",
+      market_context_lbl: "Bối cảnh thị trường",
+      setup_quality_lbl: "Chất lượng thiết lập",
+      risk_notes_lbl: "Lưu ý rủi ro",
+
+      // Journal Log
+      journal_log: "NHẬT KÝ GIAO DỊCH",
+      trade_journal: "Nhật ký giao dịch",
+      search_placeholder: "Tìm symbol, chiến lược...",
+      all: "Tất cả",
+      wins_filter: "Thắng",
+      losses_filter: "Thua",
+      be_filter: "Hòa",
+      no_trade_filter: "Kỷ luật",
+      sort_newest: "Mới nhất",
+      sort_oldest: "Cũ nhất",
+      sort_highest_pnl: "PnL cao nhất",
+      sort_lowest_pnl: "PnL thấp nhất",
+      sort_highest_r: "R cao nhất",
+      table_date: "Ngày",
+      table_symbol: "Symbol",
+      table_dir: "Dir",
+      table_strategy: "Chiến lược",
+      table_entry: "Entry",
+      table_sl: "SL",
+      table_tp: "TP",
+      table_rr: "R:R",
+      table_result: "Kết quả",
+      table_pnl: "PnL",
+      table_r: "R",
+      no_trades_logged_yet: "Chưa có giao dịch nào",
+      journal_empty_desc: "Các phiên đã đóng và giao dịch thủ công sẽ xuất hiện tại đây.",
+
+      // Metrics
+      metrics: "CHỈ SỐ",
+      strat_discipline: "Chiến lược & Kỷ luật",
+      strat_perf_title: "Hiệu suất chiến lược",
+      no_strat_metrics: "Chưa có dữ liệu hiệu suất chiến lược.",
+      discipline_risk_title: "Chỉ số kỷ luật & rủi ro",
+      risk_rule_active: "Luật rủi ro: Kích hoạt",
+      sessions_completed: "Số phiên hoàn thành",
+      trades_notrades: "Tổng số Lệnh / Kỷ luật",
+      discipline_adherence: "Tuân thủ kỷ luật",
+      avg_r_per_trade: "R trung bình mỗi lệnh",
+      max_drawdown_stat: "Sụt giảm tối đa",
+
+      // Reviews
+      reviews: "ĐÁNH GIÁ",
+      daily_reviews: "Đánh giá hằng ngày",
+      new_review: "+ Viết đánh giá",
+      no_reviews_title: "Chưa có đánh giá nào",
+      reviews_empty_desc: "Hoàn thành một phiên giao dịch để tạo đánh giá hằng ngày đầu tiên. Agent sẽ kiểm tra:",
+      chk_followed_plan: "Có tuân thủ kế hoạch không?",
+      chk_managed_risk: "Có quản lý rủi ro không? (Tối đa 1% vốn mỗi lệnh)",
+      chk_lessons_learned: "Có ghi nhận bài học và mô hình lặp lại không?",
+      trade_permitted: "CHO PHÉP GIAO DỊCH",
+      review_shutdown: "KIỂM TRA & ĐÓNG PHIÊN",
+      start_review_btn: "Bắt đầu đánh giá",
+
+      // Learnings / Patterns
+      learnings: "HỌC TẬP",
+      pattern_library: "Thư viện mô hình",
+      add_pattern: "+ Thêm mô hình",
+      no_patterns_title: "Chưa có mô hình nào được lưu",
+      patterns_empty_desc: "Các mô hình sẽ được tạo từ những setup lặp lại và đánh giá hằng tuần.",
+      ghost_observed: "Mẫu tham khảo",
+      observed_lbl: "Đã quan sát",
+      win_rate_lbl: "Tỷ lệ thắng",
+      add_pattern_btn: "Thêm mô hình",
+      ghost_breakout_title: "Mô hình Breakout",
+      ghost_breakout_desc: "Giá phá vỡ tích lũy đi ngang kèm khối lượng giao dịch đột biến xác nhận...",
+      ghost_pullback_title: "Pullback Retest",
+      ghost_pullback_desc: "Vùng kháng cự cũ chuyển vai trò thành hỗ trợ mới sau cú breakout...",
+      ghost_observed_meta: "Mẫu tham khảo · 0 lệnh",
+
+      // Footer
+      footer_name: "Bảng mô phỏng giao dịch",
+      footer_mode: "CHỈ LÀ MÔ PHỎNG GIAO DỊCH PAPER",
+      last_sync: "Đồng bộ lần cuối",
+      capital: "Vốn",
+      not_advice: "Không phải lời khuyên tài chính",
+
+      // Modal
+      modal_title: "Ghi nhận giao dịch giả lập",
+      cancel: "Hủy",
+      add_trade_btn: "Thêm giao dịch",
+      entry_price: "Giá Entry",
+      stop_loss: "Dừng lỗ (SL)",
+      take_profit: "Chốt lời (TP)",
+      pnl_usd: "PnL (USD)",
+      r_result: "Kết quả R"
+    }
+  };
+
+  let currentLang = localStorage.getItem('trading_sim_lang') || 'en';
+
+  window.setLanguage = function (lang) {
+    currentLang = lang;
+    localStorage.setItem('trading_sim_lang', lang);
+    
+    // Toggle active classes on toggles
+    const btnEn = $('lang-btn-en');
+    const btnVi = $('lang-btn-vi');
+    if (btnEn) btnEn.classList.toggle('active', lang === 'en');
+    if (btnVi) btnVi.classList.toggle('active', lang === 'vi');
+    
+    updateLanguageUI();
+    
+    // Rerender all dynamic elements
+    renderStats();
+    renderPerformanceChart();
+    renderLiveSession();
+    renderStrategyPerformance();
+    filterAndRenderTable();
+    renderReviews();
+    renderPatterns();
+  };
+
+  function updateLanguageUI() {
+    const dict = TRANSLATIONS[currentLang];
+    
+    // Static strings translation
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (dict[key]) {
+        const span = el.querySelector('span');
+        if (span) {
+          span.textContent = dict[key];
+        } else {
+          const svg = el.querySelector('svg');
+          if (svg) {
+            let textNode = el.querySelector('.btn-text') || el.querySelector('span');
+            if (!textNode) {
+              textNode = document.createElement('span');
+              el.appendChild(textNode);
+            }
+            textNode.textContent = dict[key];
+          } else {
+            el.textContent = dict[key];
+          }
+        }
+      }
+    });
+
+    // Placeholders translation
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      const key = el.getAttribute('data-i18n-placeholder');
+      if (dict[key]) {
+        el.placeholder = dict[key];
+      }
+    });
+  }
+
   // ── Constants & State variables ───────────────────────────────
   const STARTING_CAPITAL = D.account?.equity_start ?? 10000;
   let activeChartType = 'equity'; // equity, r_multiple, drawdown
@@ -48,8 +405,6 @@
   let mainChartInstance = null;
 
   // ── Helper functions ──────────────────────────────────────────
-  const $ = (id) => document.getElementById(id);
-  
   const fmt = {
     usd: (v) => {
       const parsed = parseFloat(v || 0);
@@ -64,21 +419,16 @@
       try {
         const d = new Date(iso);
         if (isNaN(d.getTime())) return iso;
-        return d.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+        return d.toLocaleDateString(currentLang === 'en' ? 'en-US' : 'vi-VN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
       } catch {
         return iso;
       }
     }
   };
 
-  // Safe DOM setter helper
-  function setText(id, value) {
-    const el = $(id);
-    if (el) el.textContent = value;
-  }
-
   // ── 1. Update Layout Hierarchies & Render KPIs ─────────────────
   function renderStats() {
+    const dict = TRANSLATIONS[currentLang];
     const curEquity = D.account.equity_current ?? STARTING_CAPITAL;
     const pnl = curEquity - STARTING_CAPITAL;
     const pnlPct = STARTING_CAPITAL > 0 ? (pnl / STARTING_CAPITAL) * 100 : 0;
@@ -102,15 +452,16 @@
     const equitySubEl = $('kpi-equity-sub');
     const equityBadgeEl = $('kpi-equity-badge');
     if (totalTrades === 0) {
-      if (equitySubEl) equitySubEl.textContent = 'Starting balance';
+      if (equitySubEl) equitySubEl.textContent = dict.starting_balance;
       if (equityBadgeEl) {
-        equityBadgeEl.textContent = '+$0.00 (0.00%)';
+        equityBadgeEl.textContent = dict.initial;
         equityBadgeEl.className = 'kpi-badge neutral';
       }
     } else {
-      if (equitySubEl) equitySubEl.textContent = `${pnl >= 0 ? '+' : ''}${fmt.usd(pnl)} (${pnl >= 0 ? '+' : ''}${pnlPct.toFixed(2)}%)`;
+      const netLabel = pnl >= 0 ? dict.net_profit : dict.net_loss;
+      if (equitySubEl) equitySubEl.textContent = `${pnl >= 0 ? '+' : ''}${fmt.usd(pnl)} (${pnl >= 0 ? '+' : ''}${pnlPct.toFixed(2)}%) ${netLabel}`;
       if (equityBadgeEl) {
-        equityBadgeEl.textContent = pnl >= 0 ? 'PROFIT' : 'LOSS';
+        equityBadgeEl.textContent = pnl >= 0 ? dict.profit_badge : dict.loss_badge;
         equityBadgeEl.className = `kpi-badge ${pnl >= 0 ? 'positive' : 'negative'}`;
       }
     }
@@ -118,7 +469,7 @@
     // KPI 2: Win Rate (Grid breakdown)
     const winrateSubEl = $('kpi-winrate-sub');
     if (winrateSubEl) {
-      winrateSubEl.textContent = totalTrades > 0 ? `${totalTrades} Closed Trade${totalTrades > 1 ? 's' : ''}` : 'No closed trades yet';
+      winrateSubEl.textContent = totalTrades > 0 ? `${totalTrades} ${totalTrades > 1 ? dict.closed_trades : dict.closed_trade}` : dict.no_trades_yet;
     }
 
     setText('kpi-winrate-val', totalTrades > 0 ? `${winRate.toFixed(1)}%` : '0.0%');
@@ -143,12 +494,14 @@
     
     const totalrSubEl = $('kpi-totalr-sub');
     if (totalrSubEl) {
-      totalrSubEl.textContent = totalTrades > 0 ? `Avg: ${totalR >= 0 ? '+' : ''}${avgR.toFixed(2)}R / trade` : 'Avg 0.00R / trade';
+      const avgStr = dict.avg_r_trade.replace('{r}', (totalTrades > 0 && totalR >= 0 ? '+' : '') + avgR.toFixed(2) + 'R');
+      totalrSubEl.textContent = avgStr;
     }
 
     const totalrBadgeEl = $('kpi-totalr-badge');
     if (totalrBadgeEl) {
-      totalrBadgeEl.textContent = totalTrades > 0 ? `${totalR >= 0 ? '+' : ''}${totalR.toFixed(2)}R total` : '0.00R total';
+      const totStr = dict.total_r_badge.replace('{r}', (totalTrades > 0 && totalR >= 0 ? '+' : '') + totalR.toFixed(2) + 'R');
+      totalrBadgeEl.textContent = totStr;
       totalrBadgeEl.className = `kpi-badge ${totalTrades === 0 ? 'neutral' : (totalR >= 0 ? 'positive' : 'negative')}`;
     }
 
@@ -160,13 +513,19 @@
     
     const drawdownSubEl = $('kpi-drawdown-sub');
     if (drawdownSubEl) {
-      drawdownSubEl.textContent = totalTrades > 0 ? 'Peak drawdown recorded' : 'No drawdown recorded';
+      drawdownSubEl.textContent = totalTrades > 0 ? dict.peak_dd_recorded : dict.no_dd_recorded;
     }
 
     const drawdownBadgeEl = $('kpi-drawdown-badge');
     if (drawdownBadgeEl) {
-      drawdownBadgeEl.textContent = `Adherence: ${ruleAdherence}%`;
+      drawdownBadgeEl.textContent = `${dict.adherence}: ${ruleAdherence}%`;
       drawdownBadgeEl.className = `kpi-badge ${totalTrades === 0 ? 'neutral' : (ruleAdherence === 100 ? 'positive' : (ruleAdherence >= 80 ? 'warning' : 'negative'))}`;
+    }
+
+    // Conditional color for Max Drawdown Card value text
+    const drawdownValEl = $('kpi-drawdown');
+    if (drawdownValEl) {
+      drawdownValEl.className = `kpi-value ${totalTrades > 0 && maxDrawdown > 0 ? 'text-loss' : ''}`;
     }
 
     // Sync Bottom stats section (Level 4 right)
@@ -330,16 +689,9 @@
     });
   }
 
-  window.switchChartType = function (chartType) {
-    activeChartType = chartType;
-    document.querySelectorAll('.chart-toggle-toolbar .toggle-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.getAttribute('data-chart-type') === chartType);
-    });
-    renderPerformanceChart();
-  };
-
   // ── 3. Live Session Controller ────────────────────────────────
   function renderLiveSession() {
+    const dict = TRANSLATIONS[currentLang];
     const s = D.active_session;
     const navPill = $('live-indicator-pill');
     const navPillLbl = $('live-status-lbl');
@@ -352,13 +704,13 @@
     if (!s || s.status === 'offline') {
       // Inactive layout
       if (navPill) navPill.className = 'live-status-pill';
-      if (navPillLbl) navPillLbl.textContent = 'OFFLINE';
+      if (navPillLbl) navPillLbl.textContent = dict.offline;
       if (badgeStatus) {
-        badgeStatus.textContent = 'Idle';
+        badgeStatus.textContent = dict.idle;
         badgeStatus.className = 'status-badge';
       }
       if (headerCta) {
-        headerCta.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3,1 11,6 3,11"/></svg><span>Start Session</span>`;
+        headerCta.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3,1 11,6 3,11"/></svg><span>${dict.start_session}</span>`;
         headerCta.onclick = triggerSessionSim;
       }
       if (inactiveBox) inactiveBox.classList.remove('hidden');
@@ -373,18 +725,18 @@
     // Status mapping & Toggles
     if (s.status === 'scanning') {
       if (navPill) navPill.className = 'live-status-pill live-scanning';
-      if (navPillLbl) navPillLbl.textContent = 'SCANNING';
+      if (navPillLbl) navPillLbl.textContent = dict.scanning;
       if (badgeStatus) {
-        badgeStatus.textContent = 'Scanning';
+        badgeStatus.textContent = dict.scanning;
         badgeStatus.className = 'status-badge scanning';
       }
       
       setText('active-symbol', s.symbol || 'BTCUSDT');
-      setText('active-strategy', 'Scanning market setups...');
+      setText('active-strategy', dict.scanning_setups);
       
       const statVal = $('active-status');
       if (statVal) {
-        statVal.textContent = 'SCANNING OPPORTUNITIES';
+        statVal.textContent = dict.scanning_opportunities;
         statVal.className = 'param-val status-color-val text-warning';
       }
       setText('active-direction', '—');
@@ -395,35 +747,35 @@
       // Bind Run Agent on Header if not analyzed
       if (headerCta) {
         if (!s.agent_reasoning) {
-          headerCta.innerHTML = `<svg class="ai-spark" width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0L7.5 4.5L12 6L7.5 7.5L6 12L4.5 7.5L0 6L4.5 4.5L6 0Z"/></svg><span>Run Agent</span>`;
+          headerCta.innerHTML = `<svg class="ai-spark" width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0L7.5 4.5L12 6L7.5 7.5L6 12L4.5 7.5L0 6L4.5 4.5L6 0Z"/></svg><span>${dict.run_agent}</span>`;
           headerCta.onclick = triggerAgentAnalysis;
         } else {
-          headerCta.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg><span>Close Session</span>`;
+          headerCta.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg><span>${dict.close_session}</span>`;
           headerCta.onclick = closeActiveSessionSim;
         }
       }
 
     } else if (s.status === 'in_trade') {
       if (navPill) navPill.className = 'live-status-pill live-active';
-      if (navPillLbl) navPillLbl.textContent = 'IN TRADE';
+      if (navPillLbl) navPillLbl.textContent = dict.in_trade;
       if (badgeStatus) {
-        badgeStatus.textContent = 'Active';
+        badgeStatus.textContent = dict.active;
         badgeStatus.className = 'status-badge active-trading';
       }
 
       setText('active-symbol', s.symbol || 'BTCUSDT');
       
       const strategyName = {
-        ema_trend_v1: 'EMA Trend Support (ema_trend_v1)',
-        rsi_reversal_v1: 'RSI Extremes (rsi_reversal_v1)',
-        breakout_retest_v1: 'S&R Breakout Retest (breakout_retest_v1)'
+        ema_trend_v1: currentLang === 'en' ? 'EMA Trend Support (ema_trend_v1)' : 'Hỗ trợ xu hướng EMA (ema_trend_v1)',
+        rsi_reversal_v1: currentLang === 'en' ? 'RSI Extremes (rsi_reversal_v1)' : 'Đảo chiều RSI (rsi_reversal_v1)',
+        breakout_retest_v1: currentLang === 'en' ? 'S&R Breakout Retest (breakout_retest_v1)' : 'Kiểm thử phá vỡ S&R (breakout_retest_v1)'
       }[s.strategy] || s.strategy;
 
       setText('active-strategy', strategyName || '—');
       
       const statVal = $('active-status');
       if (statVal) {
-        statVal.textContent = 'IN POSITION';
+        statVal.textContent = dict.in_position;
         statVal.className = 'param-val status-color-val text-win';
       }
       
@@ -442,12 +794,12 @@
       setText('active-rr', s.rr ? `1:${s.rr}` : '—');
 
       if (headerCta) {
-        headerCta.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg><span>Close Session</span>`;
+        headerCta.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg><span>${dict.close_session}</span>`;
         headerCta.onclick = closeActiveSessionSim;
       }
     }
 
-    // AI Reasoning sub-panel
+    // AI Reasoning sub-panel translation sync
     const aiIdle = $('ai-reasoning-idle');
     const aiLoading = $('ai-reasoning-loading');
     const aiActive = $('ai-reasoning-active');
@@ -457,13 +809,14 @@
       if (aiLoading) aiLoading.classList.add('hidden');
       if (aiActive) aiActive.classList.remove('hidden');
 
-      setText('ai-context', s.agent_reasoning.context || '—');
-      setText('ai-setup', s.agent_reasoning.setup || '—');
+      setText('ai-context', currentLang === 'en' ? s.agent_reasoning.context_en : s.agent_reasoning.context_vi);
+      setText('ai-setup', currentLang === 'en' ? s.agent_reasoning.setup_en : s.agent_reasoning.setup_vi);
       
       const riskEl = $('ai-risk');
       if (riskEl) {
-        if (s.agent_reasoning.risk) {
-          riskEl.textContent = s.agent_reasoning.risk;
+        const riskText = currentLang === 'en' ? s.agent_reasoning.risk_en : s.agent_reasoning.risk_vi;
+        if (riskText) {
+          riskEl.textContent = riskText;
           riskEl.classList.remove('hidden');
         } else {
           riskEl.classList.add('hidden');
@@ -482,12 +835,13 @@
     const emptyEl = $('strategies-empty');
     if (!container) return;
 
+    const dict = TRANSLATIONS[currentLang];
     const ss = D.strategy_stats;
     const strategies = [
-      { id: 'ema_trend_v1', name: 'EMA Trend Support' },
-      { id: 'rsi_reversal_v1', name: 'RSI Extremes' },
-      { id: 'breakout_retest_v1', name: 'S&R Breakout Retest' },
-      { id: 'no_trade', name: 'No-Trade Discipline' }
+      { id: 'ema_trend_v1', name: currentLang === 'en' ? 'EMA Trend Support' : 'Hỗ trợ xu hướng EMA' },
+      { id: 'rsi_reversal_v1', name: currentLang === 'en' ? 'RSI Extremes' : 'Đảo chiều RSI' },
+      { id: 'breakout_retest_v1', name: currentLang === 'en' ? 'S&R Breakout Retest' : 'Kiểm thử phá vỡ S&R' },
+      { id: 'no_trade', name: currentLang === 'en' ? 'No-Trade Discipline' : 'Kỷ luật đứng ngoài' }
     ];
 
     let hasData = false;
@@ -534,7 +888,6 @@
         isRPositive = data.total_r >= 0;
         rVal = `${isRPositive ? '+' : ''}${data.total_r.toFixed(2)}R`;
         rClass = data.trades === 0 ? 'neutral' : (isRPositive ? 'positive' : 'negative');
-        const winRate = data.trades > 0 ? Math.round((data.wins / data.trades) * 100) : 0;
         widthPct = maxR > 0 ? Math.min(100, Math.round((Math.abs(data.total_r) / maxR) * 100)) : 0;
       }
 
@@ -548,11 +901,11 @@
             <div class="strat-metrics">
               <div class="strat-metric-box">
                 <span class="strat-metric-val">${tradesCount}</span>
-                <span class="strat-metric-lbl">${isDiscipline ? 'Count' : 'Trades'}</span>
+                <span class="strat-metric-lbl">${isDiscipline ? (currentLang === 'en' ? 'Count' : 'Số lần') : (currentLang === 'en' ? 'Trades' : 'Lệnh')}</span>
               </div>
               <div class="strat-metric-box">
                 <span class="strat-metric-val ${rClass}">${rVal}</span>
-                <span class="strat-metric-lbl">${isDiscipline ? 'Result' : 'R-PnL'}</span>
+                <span class="strat-metric-lbl">${isDiscipline ? (currentLang === 'en' ? 'Result' : 'Kết quả') : (currentLang === 'en' ? 'R-PnL' : 'R-PnL')}</span>
               </div>
             </div>
           </div>
@@ -579,6 +932,7 @@
     const tableEl = $('journal-table-el');
     if (!tbody) return;
 
+    const dict = TRANSLATIONS[currentLang];
     const query = ($('journal-search')?.value || '').toLowerCase().trim();
     const sortVal = $('journal-sort')?.value || 'date-desc';
 
@@ -627,7 +981,12 @@
     // Render Table Rows
     if (filtered.length === 0) {
       tbody.innerHTML = '';
-      if (emptyEl) emptyEl.classList.remove('hidden');
+      if (emptyEl) {
+        emptyEl.querySelector('.empty-title').textContent = dict.no_trades_logged_yet;
+        emptyEl.querySelector('.empty-desc').textContent = dict.journal_empty_desc;
+        emptyEl.querySelector('.btn span').textContent = dict.add_trade;
+        emptyEl.classList.remove('hidden');
+      }
       if (tableEl) tableEl.classList.add('hidden');
       return;
     }
@@ -637,17 +996,17 @@
 
     tbody.innerHTML = filtered.map(t => {
       const resultBadge = {
-        WIN: '<span class="badge badge-win">WIN</span>',
-        LOSS: '<span class="badge badge-loss">LOSS</span>',
-        BREAKEVEN: '<span class="badge badge-be">BE</span>',
-        'NO-TRADE': '<span class="badge badge-notrade">NO-TRADE</span>',
-        OPEN: '<span class="badge badge-be" style="color:var(--blue-hover);border-color:var(--border-hi)">OPEN</span>'
+        WIN: `<span class="badge badge-win">${currentLang === 'en' ? 'WIN' : 'THẮNG'}</span>`,
+        LOSS: `<span class="badge badge-loss">${currentLang === 'en' ? 'LOSS' : 'THUA'}</span>`,
+        BREAKEVEN: `<span class="badge badge-be">${currentLang === 'en' ? 'BE' : 'HÒA'}</span>`,
+        'NO-TRADE': `<span class="badge badge-notrade">${currentLang === 'en' ? 'NO-TRADE' : 'KỶ LUẬT'}</span>`,
+        OPEN: `<span class="badge badge-be" style="color:var(--blue-hover);border-color:var(--border-hi)">OPEN</span>`
       }[t.status] || `<span class="badge badge-be">${t.status}</span>`;
 
       const dirBadge = t.direction === 'LONG' 
-        ? '<span class="badge badge-long">LONG</span>' 
+        ? `<span class="badge badge-long">${currentLang === 'en' ? 'LONG' : 'LONG'}</span>` 
         : t.direction === 'SHORT' 
-          ? '<span class="badge badge-short">SHORT</span>' 
+          ? `<span class="badge badge-short">${currentLang === 'en' ? 'SHORT' : 'SHORT'}</span>` 
           : '<span class="badge badge-be">—</span>';
 
       const pnlClass = t.pnl_usd >= 0 ? 'pnl-positive' : 'pnl-negative';
@@ -660,12 +1019,18 @@
       const pnlUSD = t._type === 'trade' ? fmt.usd(t.pnl_usd) : '—';
       const rVal = t._type === 'trade' ? fmt.r(t.r_result) : '—';
 
+      const stratDisplay = {
+        ema_trend_v1: currentLang === 'en' ? 'EMA Trend Support' : 'Hỗ trợ xu hướng EMA',
+        rsi_reversal_v1: currentLang === 'en' ? 'RSI Extremes' : 'Đảo chiều RSI',
+        breakout_retest_v1: currentLang === 'en' ? 'S&R Breakout Retest' : 'Kiểm thử phá vỡ S&R'
+      }[t.strategy] || t.strategy;
+
       return `
         <tr>
           <td class="mono" style="color:var(--text-muted); font-size:11px">${fmt.date(t.date || t.timestamp_entry)}</td>
           <td class="mono" style="font-weight:700">${t.symbol ?? '—'}</td>
           <td>${dirBadge}</td>
-          <td style="color:var(--text-secondary); font-size:11px">${t.strategy}</td>
+          <td style="color:var(--text-secondary); font-size:11px">${stratDisplay}</td>
           <td class="text-right mono">${entryPrice}</td>
           <td class="text-right mono text-loss" style="font-size:11px">${slPrice}</td>
           <td class="text-right mono text-win" style="font-size:11px">${tpPrice}</td>
@@ -684,10 +1049,16 @@
     const emptyEl = $('reviews-empty');
     if (!container) return;
 
+    const dict = TRANSLATIONS[currentLang];
     const reviews = D.daily_reviews ?? [];
     if (reviews.length === 0) {
       container.innerHTML = '';
-      if (emptyEl) emptyEl.classList.remove('hidden');
+      if (emptyEl) {
+        emptyEl.querySelector('.empty-title').textContent = dict.no_reviews_title;
+        emptyEl.querySelector('.empty-desc').textContent = dict.reviews_empty_desc;
+        emptyEl.querySelector('.btn span').textContent = dict.start_review_btn;
+        emptyEl.classList.remove('hidden');
+      }
       return;
     }
 
@@ -697,7 +1068,8 @@
       const isAllowed = r.permission_for_next_day === 'trade';
       const statusClass = isAllowed ? 'text-win' : 'text-loss';
       const statusIcon = isAllowed ? '✓' : '⚠';
-      const statusText = isAllowed ? 'TRADE PERMITTED' : 'REVIEW & SHUTDOWN';
+      const statusText = isAllowed ? dict.trade_permitted : dict.review_shutdown;
+      const lessonText = currentLang === 'en' ? (r.lesson_en || r.lesson_for_next_session) : (r.lesson_vi || r.lesson_for_next_session);
 
       return `
         <div class="review-notebook-card ${isAllowed ? '' : 'review-violation'}">
@@ -709,7 +1081,7 @@
           </div>
           <div class="review-stats-mini">
             <div class="review-mini-cell">
-              <span class="review-mini-label">Trades</span>
+              <span class="review-mini-label">${currentLang === 'en' ? 'Trades' : 'Giao dịch'}</span>
               <span class="review-mini-val">${r.trades_count ?? 0}</span>
             </div>
             <div class="review-mini-cell">
@@ -726,7 +1098,7 @@
             </div>
           </div>
           <div class="review-text-content">
-            <p><strong>Lessons:</strong> ${r.lesson_for_next_session || 'No specific notes logged.'}</p>
+            <p><strong>${currentLang === 'en' ? 'Lessons' : 'Bài học'}:</strong> ${lessonText || 'No specific notes logged.'}</p>
           </div>
         </div>
       `;
@@ -738,10 +1110,16 @@
     const emptyEl = $('patterns-empty');
     if (!grid) return;
 
+    const dict = TRANSLATIONS[currentLang];
     const patterns = D.patterns ?? [];
     if (patterns.length === 0) {
       grid.classList.add('hidden');
-      if (emptyEl) emptyEl.classList.remove('hidden');
+      if (emptyEl) {
+        emptyEl.querySelector('.empty-title').textContent = dict.no_patterns_title;
+        emptyEl.querySelector('.empty-desc').textContent = dict.patterns_empty_desc;
+        emptyEl.querySelector('.btn span').textContent = dict.add_pattern_btn;
+        emptyEl.classList.remove('hidden');
+      }
       return;
     }
 
@@ -755,18 +1133,21 @@
         confirmed: 'pat-confirmed'
       }[p.status || 'hypothesis'];
 
+      const title = currentLang === 'en' ? (p.title_en || p.title) : (p.title_vi || p.title);
+      const desc = currentLang === 'en' ? (p.desc_en || p.description) : (p.desc_vi || p.description);
+
       return `
         <div class="pattern-library-card">
           <div>
             <div class="pattern-card-header">
-              <span class="pattern-title-text">${p.title}</span>
+              <span class="pattern-title-text">${title}</span>
               <span class="pattern-status-badge ${statusClass}">${p.status}</span>
             </div>
-            <p class="pattern-card-desc">${p.description}</p>
+            <p class="pattern-card-desc">${desc}</p>
           </div>
           <div class="pattern-card-meta">
-            <span>Observed: ${p.observed ?? 1}×</span>
-            <span class="text-win" style="font-weight:700">Win Rate: ${p.win_rate ?? 0}%</span>
+            <span>${dict.observed_lbl}: ${p.observed ?? 1}×</span>
+            <span class="text-win" style="font-weight:700">${dict.win_rate_lbl}: ${p.win_rate ?? 0}%</span>
           </div>
         </div>
       `;
@@ -809,7 +1190,6 @@
     if (D.active_session.status === 'in_trade') {
       settleActiveTradeSim();
     } else {
-      // Discard scanning session
       D.active_session = null;
       D.meta.last_updated = new Date().toISOString();
       renderLiveSession();
@@ -845,9 +1225,12 @@
           tp: 70600,
           rr: 3.0,
           reasoning: {
-            context: 'Solid H4 bullish structure. EMA 21 & EMA 50 stacked and sloping upwards. ADX = 28.4 indicates high trend strength.',
-            setup: 'Price retested dynamic support zone of EMA 21. Bullish hammer candle formed on H4 with elevated volume.',
-            risk: 'Upcoming US CPI news tonight. Keep leverage conservative and monitor short-term spikes.'
+            context_en: 'Solid H4 bullish structure. EMA 21 & EMA 50 stacked and sloping upwards. ADX = 28.4 indicates high trend strength.',
+            context_vi: 'Cấu trúc tăng H4 bền vững. Đường EMA 21 & EMA 50 xếp chồng song song hướng lên trên. Chỉ số ADX = 28.4 biểu thị xu hướng mạnh mẽ.',
+            setup_en: 'Price retested dynamic support zone of EMA 21. Bullish hammer candle formed on H4 with elevated volume.',
+            setup_vi: 'Giá hồi quy kỹ thuật (retest) thành công về dải hỗ trợ động EMA 21. Xuất hiện nến rút chân H4 Bullish Hammer kèm vol mua đột biến.',
+            risk_en: 'Upcoming US CPI news tonight. Keep leverage conservative and monitor short-term spikes.',
+            risk_vi: 'Cần chú ý tin tức CPI Mỹ được công bố tối nay. Tránh giao dịch đòn bẩy quá cao.'
           }
         },
         {
@@ -858,9 +1241,12 @@
           tp: 67700,
           rr: 3.0,
           reasoning: {
-            context: 'Price approaching major historical resistance. H1 RSI reached 78.5 (overbought) with clear bearish divergence.',
-            setup: 'Bearish engulfing candle formed at the upper bound of the ascending channel. MACD bearish crossover.',
-            risk: 'Counter-trend trade. Strict 1% account risk limit must be enforced.'
+            context_en: 'Price approaching major historical resistance. H1 RSI reached 78.5 (overbought) with clear bearish divergence.',
+            context_vi: 'Giá tiệm cận vùng kháng cự ATH cứng. RSI khung H1 đạt cực đại 78.5 (Quá mua) kết hợp phân kỳ âm rõ rệt.',
+            setup_en: 'Bearish engulfing candle formed at the upper bound of the ascending channel. MACD bearish crossover.',
+            setup_vi: 'Nến đảo chiều Bearish Engulfing xuất hiện ở biên trên kênh giá song song. MACD giao cắt hướng xuống.',
+            risk_en: 'Counter-trend trade. Strict 1% account risk limit must be enforced.',
+            risk_vi: 'Đi ngược xu hướng chính H4. Tuyệt đối tuân thủ dừng lỗ tối đa 1% tài khoản.'
           }
         },
         {
@@ -871,9 +1257,12 @@
           tp: 70900,
           rr: 3.0,
           reasoning: {
-            context: 'Clean breakout of a 5-day symmetrical triangle pattern on the H1 timeframe.',
-            setup: 'Pinbar candle retesting the upper boundary of the triangle (new dynamic support). Declining sell volume.',
-            risk: 'Failure to close above $68,300 invalidates the breakout setup (Fakeout risk).'
+            context_en: 'Clean breakout of a 5-day symmetrical triangle pattern on the H1 timeframe.',
+            context_vi: 'Giá phá vỡ thành công mô hình tam giác tích lũy (Symmetrical Triangle) kéo dài 5 ngày trên khung đồ thị H1.',
+            setup_en: 'Pinbar candle retesting the upper boundary of the triangle (new dynamic support). Declining sell volume.',
+            setup_vi: 'Đang hình thành nến Pinbar retest lại cạnh trên của tam giác đã phá vỡ (vùng hỗ trợ mới). Vol bán giảm dần.',
+            risk_en: 'Failure to close above $68,300 invalidates the breakout setup (Fakeout risk).',
+            risk_vi: 'Nếu đóng nến dưới 68,300 USD thì thiết lập breakout này thất bại (Bẫy tăng giá/Fakeout).'
           }
         }
       ][Math.floor(Math.random() * 3)];
@@ -895,13 +1284,13 @@
     }, 1000);
   };
 
-  // Helper: Settle Active simulated Trade with a random win/loss
+  // Helper: Settle simulated trade
   function settleActiveTradeSim() {
     if (!D.active_session || D.active_session.status !== 'in_trade') return;
 
     const s = D.active_session;
     
-    // Simulate discipline checks
+    // Simulate rules adherence check
     const violatesRules = Math.random() < 0.15; // 15% chance of rule violation
     if (violatesRules) {
       D.cumulative_stats.rule_violations += 1;
@@ -909,13 +1298,13 @@
     
     const isWin = Math.random() > 0.4; // 60% win rate
     let result = 'LOSS';
-    let pnl = -100; // $100 loss (1% risk on $10k capital)
+    let pnl = -100;
     let r_res = -1.0;
 
     if (isWin) {
       result = 'WIN';
       r_res = parseFloat(s.rr || 3.0);
-      pnl = 100 * r_res; // $300 profit on 3R
+      pnl = 100 * r_res;
     } else if (Math.random() < 0.1) {
       result = 'BREAKEVEN';
       pnl = 0;
@@ -939,7 +1328,7 @@
 
     D.trades.push(newTrade);
     
-    // Update stats
+    // Update statistics
     if (result === 'WIN') D.cumulative_stats.wins += 1;
     else if (result === 'LOSS') D.cumulative_stats.losses += 1;
     else D.cumulative_stats.breakeven += 1;
@@ -965,7 +1354,7 @@
     D.active_session = null;
     D.meta.last_updated = new Date().toISOString();
 
-    // Redraw
+    // Redraw components
     rebuildEquityCurve();
     renderStats();
     renderPerformanceChart();
@@ -1078,15 +1467,18 @@
   window.triggerReviewSim = function () {
     const list = [
       {
-        lesson: 'Perfect adherence to the trading plan. Stayed calm when price approached Stop Loss and did not move the SL.',
+        lesson_en: 'Perfect adherence to the trading plan. Stayed calm when price approached Stop Loss and did not move the SL.',
+        lesson_vi: 'Tuân thủ kế hoạch giao dịch hoàn hảo. Giữ bình tĩnh khi giá tiệm cận Stop Loss và kiên quyết không dịch SL.',
         permission: 'trade'
       },
       {
-        lesson: 'Avoided trading during high volatility leading up to the FOMC news. Good decision to sit on hands.',
+        lesson_en: 'Avoided trading during high volatility leading up to the FOMC news. Good decision to sit on hands.',
+        lesson_vi: 'Tránh vào lệnh khi thị trường biến động giật mạnh trước tin tức FOMC. Nên đứng ngoài quan sát.',
         permission: 'trade'
       },
       {
-        lesson: 'Discipline error: FOMO entry when price had already run too far from the Entry. Suspended trading for the next session.',
+        lesson_en: 'Discipline error: FOMO entry when price had already run too far from the Entry. Suspended trading for the next session.',
+        lesson_vi: 'Lỗi kỷ luật: Fomo vào lệnh khi giá đã chạy quá xa điểm Entry. Phạt ngưng giao dịch 1 phiên kế tiếp.',
         permission: 'review'
       }
     ];
@@ -1099,7 +1491,9 @@
       net_r: (Math.random() * 6) - 2,
       net_pnl_usd: (Math.random() * 600) - 200,
       permission_for_next_day: pick.permission,
-      lesson_for_next_session: pick.lesson
+      lesson_en: pick.lesson_en,
+      lesson_vi: pick.lesson_vi,
+      lesson_for_next_session: pick.lesson_en // Fallback
     };
 
     D.daily_reviews.unshift(newReview);
@@ -1113,22 +1507,28 @@
   window.triggerPatternSim = function () {
     const patterns = [
       {
-        title: 'Bullish Flag Breakout',
-        description: 'Bullish flag pattern forming after a strong uptrend. Retest and breakout of the upper boundary with high volume confirms trend continuation.',
+        title_en: 'Bullish Flag Breakout',
+        title_vi: 'Mô hình Cờ tăng phá vỡ',
+        desc_en: 'Bullish flag pattern forming after a strong uptrend. Retest and breakout of the upper boundary with high volume confirms trend continuation.',
+        desc_vi: 'Mô hình cờ tăng xuất hiện sau một xu hướng tăng mạnh. Phá vỡ cạnh trên cờ kèm theo khối lượng giao dịch đột biến xác nhận tiếp diễn xu hướng.',
         status: 'confirmed',
         observed: 4,
         win_rate: 75
       },
       {
-        title: 'Double Bottom Support',
-        description: 'Double bottom pattern forming at H4 key support. Bullish RSI divergence provides strong reversal signals.',
+        title_en: 'Double Bottom Support',
+        title_vi: 'Mô hình Hai đáy hỗ trợ',
+        desc_en: 'Double bottom pattern forming at H4 key support. Bullish RSI divergence provides strong reversal signals.',
+        desc_vi: 'Mô hình 2 đáy hình thành tại vùng hỗ trợ cứng khung H4. RSI phân kỳ dương tạo tín hiệu mua đảo chiều mạnh mẽ.',
         status: 'probable',
         observed: 2,
         win_rate: 50
       },
       {
-        title: 'Head and Shoulders Peak',
-        description: 'Head and shoulders pattern indicating bearish trend reversal at structural highs. Breakdown below neckline triggers technical selloff.',
+        title_en: 'Head and Shoulders Peak',
+        title_vi: 'Mô hình Vai Đầu Vai đảo chiều',
+        desc_en: 'Head and shoulders pattern indicating bearish trend reversal at structural highs. Breakdown below neckline triggers technical selloff.',
+        desc_vi: 'Mô hình Vai Đầu Vai đảo chiều giảm giá tại đỉnh. Phá vỡ đường viền cổ (Neckline) kích hoạt lực bán tháo kỹ thuật.',
         status: 'hypothesis',
         observed: 1,
         win_rate: 0
@@ -1138,13 +1538,17 @@
     const pick = patterns[Math.floor(Math.random() * patterns.length)];
     
     // Check if title already exists, increment observed
-    const existing = D.patterns.find(p => p.title === pick.title);
+    const existing = D.patterns.find(p => p.title_en === pick.title_en);
     if (existing) {
       existing.observed += 1;
     } else {
       D.patterns.push({
-        title: pick.title,
-        description: pick.description,
+        title: pick.title_en,
+        title_en: pick.title_en,
+        title_vi: pick.title_vi,
+        description: pick.desc_en,
+        desc_en: pick.desc_en,
+        desc_vi: pick.desc_vi,
         status: pick.status,
         observed: pick.observed,
         win_rate: pick.win_rate
@@ -1155,44 +1559,20 @@
     renderPatterns();
   };
 
-  // Action: Add Simulated No-Trade discipline log
-  window.triggerNoTradeSim = function () {
-    const disciplineScenarios = [
-      {
-        strategy: 'Discipline Check',
-        reason: 'Market context highly volatile pre-FOMC. Sticking to plan to stay flat.',
-      },
-      {
-        strategy: 'Setup Invalidated',
-        reason: 'EMA Retest did not produce a bullish trigger candle. Sticking to rules.',
-      },
-      {
-        strategy: 'Drawdown Circuit Breaker',
-        reason: 'Daily max loss limits reached. Disabling trading session.',
-      }
-    ];
-
-    const pick = disciplineScenarios[Math.floor(Math.random() * disciplineScenarios.length)];
-    
-    const newNoTrade = {
-      date: new Date().toISOString(),
-      strategy: pick.strategy,
-      reason: pick.reason
-    };
-
-    if (!D.no_trades) D.no_trades = [];
-    D.no_trades.push(newNoTrade);
-
-    D.cumulative_stats.total_no_trades = (D.cumulative_stats.total_no_trades ?? 0) + 1;
-    D.meta.last_updated = new Date().toISOString();
-
-    renderStats();
-    renderStrategyPerformance();
-    filterAndRenderTable();
-  };
+  // Safe DOM setter helper
+  function setText(id, value) {
+    const el = $(id);
+    if (el) el.textContent = value;
+  }
 
   // ── 8. Initial Initialization on Load ─────────────────────────
   function init() {
+    // Sync active button classes based on current lang
+    const btnEn = $('lang-btn-en');
+    const btnVi = $('lang-btn-vi');
+    if (btnEn) btnEn.classList.toggle('active', currentLang === 'en');
+    if (btnVi) btnVi.classList.toggle('active', currentLang === 'vi');
+
     const directionEl = $('trade-direction');
     if (directionEl) directionEl.onchange = toggleFormPnlInputs;
     
@@ -1213,6 +1593,9 @@
     if (formEl) {
       formEl.onsubmit = handleFormSubmit;
     }
+
+    // Set i18n static text
+    updateLanguageUI();
 
     // Set starting states
     rebuildEquityCurve();
