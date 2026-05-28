@@ -5,11 +5,14 @@
 
 :root {
   /* Backgrounds */
-  --bg:           #07090f;
+  --bg:           radial-gradient(120% 120% at 50% 10%, #0e1324 0%, #07090f 100%);
+  --bg-grid:      linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
   --surface:      #0d1117;
   --surface-2:    #131922;
   --surface-3:    #1a2234;
-  --card-bg:      rgba(13, 17, 24, 0.92);
+  --card-bg:      linear-gradient(135deg, #0d1117 0%, color-mix(in srgb, #0d1117 94%, var(--blue) 6%) 100%);
+  --card-bg-hover: linear-gradient(135deg, #10151d 0%, color-mix(in srgb, #10151d 91%, var(--blue) 9%) 100%);
+  --chart-empty-bg: rgba(13, 17, 23, 0.95);
   --nav-bg:       rgba(10, 13, 20, 0.92);
   --overlay-bg:   rgba(7, 9, 15, 0.88);
 
@@ -68,8 +71,9 @@
   --dur-mid:  280ms;
   --dur-slow: 420ms;
 
-  /* Shadows */
-  --shadow-card:  inset 0 1px 0 rgba(255, 255, 255, 0.025), 0 18px 40px rgba(0, 0, 0, 0.26);
-  --shadow-panel: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 20px 44px rgba(0, 0, 0, 0.32);
+  /* Shadows & Bezel */
+  --bright-rim:   inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --shadow-card:  var(--bright-rim), 0 16px 40px -10px rgba(0, 0, 0, 0.4), 0 8px 16px -8px rgba(0, 0, 0, 0.4);
+  --shadow-panel: var(--bright-rim), 0 18px 28px -20px rgba(59, 130, 246, 0.25), 0 16px 40px -10px rgba(0, 0, 0, 0.5);
   --shadow-nav:   0 8px 32px -8px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04);
 }

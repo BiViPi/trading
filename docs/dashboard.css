@@ -26,6 +26,9 @@ body {
   font-size: 13px;
   line-height: 1.5;
   background: var(--bg);
+  background-image: var(--bg-grid);
+  background-size: 28px 28px;
+  background-attachment: fixed;
   color: var(--text-1);
   min-height: 100dvh;
   overflow-x: hidden;
@@ -92,12 +95,14 @@ a { text-decoration: none; }
   box-shadow: var(--shadow-card);
   transition:
     border-color var(--dur-mid) var(--ease-out),
+    background   var(--dur-mid) var(--ease-out),
     box-shadow   var(--dur-mid) var(--ease-out),
     transform    var(--dur-mid) var(--ease-out);
-  will-change: transform;
+  will-change: transform, box-shadow;
   height: 100%;
 }
 .double-bezel:hover {
+  background: var(--card-bg-hover, var(--card-bg));
   border-color: var(--border-hover);
   box-shadow: var(--shadow-panel);
 }
@@ -546,7 +551,7 @@ a { text-decoration: none; }
 .chart-empty-state {
   position: absolute;
   inset: 0;
-  background: rgba(13, 17, 23, 0.95);
+  background: var(--chart-empty-bg);
   backdrop-filter: blur(4px);
   border-radius: 8px;
   z-index: 5;
@@ -580,6 +585,7 @@ a { text-decoration: none; }
   pointer-events: none;
   z-index: 0;
   opacity: 0.45;
+  color: var(--border);
 }
 .empty-state-content-wrapper {
   position: relative;
