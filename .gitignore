@@ -1,0 +1,9 @@
+# Ignore everything by default
+*
+
+# Allow the .gitignore file itself
+!.gitignore
+
+# Allow the docs directory and all its contents (GitHub Pages source)
+!docs/
+!docs/**
